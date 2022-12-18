@@ -1,0 +1,15 @@
+.build.sh
+.build.hqx
+.info
+.appname
+.export
+.tag
+.commit
+.version
+.summary.txt
+.todo
+.attic
+.dev
+Makefile
+doc
+vendor
