@@ -5,6 +5,11 @@
 -   Tired of guess all the cmd switches for [openssl|certutil|...] to decode an simple certificate ?
 -   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo ...
 
+## Install 
+```
+go install paepcke.de/certinfo/cmd/certinfo@latest
+```
+
 # Showtime
 
 ## Summary of all certificates (multipart-pem-decode)
