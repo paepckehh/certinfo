@@ -1,16 +1,17 @@
-# Overview
+# OVERVIEW
 
 [paepche.de/certinfo](https://paepcke.de/certinfo)
 
 -   Tired of guess all the cmd switches for [openssl|certutil|...] to decode an simple certificate ?
 -   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo ...
 
-## Install 
+# INSTALL
+
 ```
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
-# Showtime
+# SHOWTIME
 
 ## Summary of all certificates (multipart-pem-decode)
 
@@ -69,3 +70,7 @@ PEMONLY=true cat /etc/ssl/* | certinfo > truststore.pem
 HTML=true certinfo certs.txt
 [...]
 ```
+
+# CONTRIBUTION
+
+Yes, Please! PRs Welcome! 
