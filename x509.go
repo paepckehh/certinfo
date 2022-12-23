@@ -1,7 +1,5 @@
-// package certinfo
 package certinfo
 
-// import
 import (
 	"crypto/dsa"
 	"crypto/ecdsa"
@@ -28,7 +26,6 @@ import (
 // INTERNAL LEGACY BACKEND
 //
 
-// certSummary ...
 func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 	var s strings.Builder
 	s.WriteString(e.L1 + "X509 Cert Subject          " + e.L2 + shortMsg(cert.Subject.String()) + e.LE)
@@ -75,7 +72,6 @@ func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// certOssl ...
 func certOpenSSL(cert *x509.Certificate, e *reportstyle.Style) string {
 	ossl := x509UT.CertificateToString(cert2CT(cert))
 	if e.SaniFunc != nil {
@@ -88,7 +84,6 @@ func certOpenSSL(cert *x509.Certificate, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// certPem ...
 func certPem(cert *x509.Certificate, e *reportstyle.Style) string {
 	if e.SaniFunc != nil {
 		return e.PS + e.SaniFunc(string(cert2pem(cert))) + e.PE
@@ -96,19 +91,16 @@ func certPem(cert *x509.Certificate, e *reportstyle.Style) string {
 	return string(cert2pem(cert))
 }
 
-// cert2pem ...
 func cert2pem(cert *x509.Certificate) []byte {
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 }
 
-// cert2CT crypto/x509 -> github.com/google/certificate-transparency-go/x509
 func cert2CT(cert *x509.Certificate) *x509CT.Certificate {
 	pct, _ := pem.Decode(cert2pem(cert))
 	crt, _ := x509CT.ParseCertificate(pct.Bytes)
 	return crt
 }
 
-// decodePemBlock ..
 func decodePemBlock(block *pem.Block, r *Report) string {
 	defer func() {
 		if err := recover(); err != nil {
@@ -145,7 +137,6 @@ func decodePemBlock(block *pem.Block, r *Report) string {
 	return errString(errors.New("no decoder for pem type: " + block.Type))
 }
 
-// sigAlgo ...
 func sigAlgo(in string, e *reportstyle.Style) string {
 	switch in {
 	case "MD2-RSA", "MD5-RSA", "SHA1-RSA", "DSA-SHA1", "ECDSA-SHA1", "DSA-SHA256":
@@ -158,7 +149,6 @@ func sigAlgo(in string, e *reportstyle.Style) string {
 	return e.Fail + _unknown + shortMsg(in)
 }
 
-// pubKey ...
 func pubKey(pub any, e *reportstyle.Style) string {
 	switch pub := pub.(type) {
 	case *rsa.PublicKey:
@@ -181,13 +171,11 @@ func pubKey(pub any, e *reportstyle.Style) string {
 	return e.Fail + "[UNKNOWN]"
 }
 
-// keyPin ...
 func keyPin(cert *x509.Certificate) []byte {
 	digest := sha256.Sum256(cert.RawSubjectPublicKeyInfo)
 	return digest[:]
 }
 
-// isSelfSigned ...
 func isSelfSigned(cert *x509.Certificate, e *reportstyle.Style) (string, bool) {
 	selfsigned, status := _no, false
 	if cert.IsCA && cert.Issuer.String() == cert.Subject.String() {
@@ -199,7 +187,6 @@ func isSelfSigned(cert *x509.Certificate, e *reportstyle.Style) (string, bool) {
 	return selfsigned, status
 }
 
-// subCA ...
 func subCA(cert *x509.Certificate, e *reportstyle.Style) string {
 	if cert.IsCA {
 		if cert.MaxPathLen > 0 {
@@ -213,7 +200,6 @@ func subCA(cert *x509.Certificate, e *reportstyle.Style) string {
 	return _no
 }
 
-// isCA ...
 func isCA(cert *x509.Certificate, e *reportstyle.Style) string {
 	state, alert := "", ""
 	if cert.IsCA {
@@ -230,7 +216,6 @@ func isCA(cert *x509.Certificate, e *reportstyle.Style) string {
 	return state + alert
 }
 
-// signatureSatate ...
 func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 	_, err := cert.Verify(x509.VerifyOptions{})
 	if err != nil {
@@ -239,7 +224,6 @@ func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 	return e.Valid + " [trusted via system trust store]"
 }
 
-// validFor ...
 func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	result, t := e.Fail, cert.NotAfter.Sub(time.Now())
 	tss, h := ftoa64(math.Abs(float64(t.Hours())))+_hours, t.Hours()
@@ -264,12 +248,10 @@ func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	return result
 }
 
-// encryptedBlock ...
 func encryptedBlock(block *pem.Block) bool {
 	return strings.Contains(block.Headers["Proc-Type"], "ENCRYPTED")
 }
 
-// certRequest ...
 func certRequestSummary(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	err := csr.CheckSignature()
 	if err != nil {
@@ -278,7 +260,6 @@ func certRequestSummary(csr *x509.CertificateRequest, e *reportstyle.Style) stri
 	return e.Valid
 }
 
-// keyUsage ...
 func keyUsage(cert *x509.Certificate, e *reportstyle.Style) string {
 	var s strings.Builder
 	caAlert := false
@@ -300,7 +281,6 @@ func keyUsage(cert *x509.Certificate, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// extendedKeyUsage ...
 func extendedKeyUsage(cert *x509.Certificate, e *reportstyle.Style) string {
 	var s strings.Builder
 	count, critical := oidInExtensions(oidExtensionExtendedKeyUsage, cert.Extensions)
@@ -319,7 +299,6 @@ func extendedKeyUsage(cert *x509.Certificate, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// sct ...
 func sct(cert *x509.Certificate, _ *reportstyle.Style) string {
 	var s strings.Builder
 	count, critical := oidInExtensions(oidExtensionCTPoison, cert.Extensions)
@@ -365,7 +344,6 @@ func sct(cert *x509.Certificate, _ *reportstyle.Style) string {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// var
 var (
 	oidExtensionArc                        = asn1.ObjectIdentifier{2, 5, 29}
 	oidExtensionSubjectKeyId               = asn1.ObjectIdentifier{2, 5, 29, 14}
@@ -391,7 +369,6 @@ var (
 	oidExtensionASList                     = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 8}
 )
 
-// keyUsageToString ..
 func keyUsageToString(k x509.KeyUsage) (string, bool) {
 	var s strings.Builder
 	caAlert := false
@@ -426,7 +403,6 @@ func keyUsageToString(k x509.KeyUsage) (string, bool) {
 	return s.String(), caAlert
 }
 
-// extKeyUsageToString ...
 func extKeyUsageToString(u x509.ExtKeyUsage, e *reportstyle.Style) string {
 	switch u {
 	case x509.ExtKeyUsageAny:
@@ -461,7 +437,6 @@ func extKeyUsageToString(u x509.ExtKeyUsage, e *reportstyle.Style) string {
 	}
 }
 
-// oidInExtensions ...
 func oidInExtensions(oid asn1.ObjectIdentifier, extensions []pkix.Extension) (int, bool) {
 	count := 0
 	critical := false
@@ -476,7 +451,6 @@ func oidInExtensions(oid asn1.ObjectIdentifier, extensions []pkix.Extension) (in
 	return count, critical
 }
 
-// cureState ...
 func curveState(curve elliptic.Curve) (string, bool) {
 	switch curve {
 	case elliptic.P256():

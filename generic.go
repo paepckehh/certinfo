@@ -1,7 +1,5 @@
-// package certinfo
 package certinfo
 
-// import
 import (
 	"bufio"
 	"bytes"
@@ -17,7 +15,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// const
 const (
 	_app          = "[certinfo]"
 	_rootCA       = " [RootCA]"
@@ -43,7 +40,6 @@ const (
 // GENERIC ASCII INPUT HANDLER
 //
 
-// decodeBlock ...
 func decodeBlock(asciiBlock string, r *Report) string {
 	var err error
 	var eval string
@@ -66,7 +62,6 @@ func decodeBlock(asciiBlock string, r *Report) string {
 	return "[certinfo] [unable to decode] [pem:failed] [ssh:failed]"
 }
 
-// sanitizer removes comments and anything else that is not an pem container
 func sanitizer(in string) (full, cut string, err error) {
 	var s strings.Builder
 	scanner := bufio.NewScanner(strings.NewReader(in))
@@ -92,7 +87,6 @@ func sanitizer(in string) (full, cut string, err error) {
 	return full, cut, nil
 }
 
-// multipartDecodeParallel ...
 func multipartDecodeParallel(asciiBlock string, r *Report) string {
 	var (
 		bg    sync.WaitGroup
@@ -128,7 +122,6 @@ func multipartDecodeParallel(asciiBlock string, r *Report) string {
 // GENERIC OUTPUT FORMAT HELPER
 //
 
-// errString ..
 func errString(err error) string {
 	var s strings.Builder
 	s.WriteString(_app)
@@ -137,7 +130,6 @@ func errString(err error) string {
 	return s.String()
 }
 
-// short ...
 func short(in string) string {
 	if len(in) > 80 {
 		return in[:80]
@@ -145,7 +137,6 @@ func short(in string) string {
 	return in
 }
 
-// shortMsg ...
 func shortMsg(in string) string {
 	var s strings.Builder
 	s.WriteString(_openbracket)
@@ -159,7 +150,6 @@ func shortMsg(in string) string {
 	return s.String()
 }
 
-// shortMsgArray ...
 func shortMsgArray(in []string) string {
 	if len(in) < 1 {
 		return _empty
@@ -171,7 +161,6 @@ func shortMsgArray(in []string) string {
 	return short(s.String())
 }
 
-// shortMsgArrayIP ...
 func shortMsgArrayIP(in []net.IP) string {
 	if len(in) < 1 {
 		return _empty
@@ -183,7 +172,6 @@ func shortMsgArrayIP(in []net.IP) string {
 	return short(s.String())
 }
 
-// shortMsgArrayURL ...
 func shortMsgArrayURL(in []*url.URL) string {
 	if len(in) > 0 {
 		return _empty
@@ -195,14 +183,7 @@ func shortMsgArrayURL(in []*url.URL) string {
 	return short(s.String())
 }
 
-// itoa ...
 func itoa(in int) string { return strconv.Itoa(in) }
-
-// ftoa64 ...
 func ftoa64(in float64) string { return strconv.FormatFloat(in, 'f', 0, 64) }
-
-// itoa64 ...
 func itoa64(in int64) string { return strconv.FormatInt(in, 10) }
-
-// out ...
 func out(msg string) { os.Stdout.Write([]byte(msg + _linefeed)) }

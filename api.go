@@ -1,4 +1,4 @@
-// package certinfo
+// package certinfo analyzes encoded keys and certificates 
 package certinfo
 
 // import
@@ -20,7 +20,7 @@ import (
 // SIMPLE API
 //
 
-// ReportAsText ...
+// ReportAsText
 // In : Parse any mixed ascii input.
 // Out: Report any decodeable certificate details and clean re-encoded pem as Plain ASCII Text Output.
 func ReportAsText(asciiBlock string) string {
@@ -30,7 +30,7 @@ func ReportAsText(asciiBlock string) string {
 	})
 }
 
-// ReportAsAnsi ...
+// ReportAsAnsi
 // In : Parse any mixed ascii input.
 // Out: Report any decodeable certificate details and clean re-encoded pem as Color Terminal Console Output
 func ReportAsAnsi(asciiBlock string) string {
@@ -40,7 +40,7 @@ func ReportAsAnsi(asciiBlock string) string {
 	})
 }
 
-// ReportAsMarkdown ...
+// ReportAsMarkdown
 // In : Parse any mixed ascii input.
 // Out: Report any decodeable certificate details as Markdown Code and a clean re-encoded sanitized pem as post URL.
 func ReportAsMarkdown(asciiBlock string) string {
@@ -50,7 +50,7 @@ func ReportAsMarkdown(asciiBlock string) string {
 	})
 }
 
-// ReportAsHTML ...
+// ReportAsHTML
 // In : Parse any mixed ascii input.
 // Out: Report any decodeable certificate details as HTML Code and a clean re-encoded sanitized pem as post URL.
 func ReportAsHTML(asciiBlock string) string {
@@ -60,7 +60,7 @@ func ReportAsHTML(asciiBlock string) string {
 	})
 }
 
-// SanitizePEM ...
+// SanitizePEM 
 // In : Parse any mixed ascii input.
 // Out: Sanitizes and clean re-encode any decodable certificate as new pem container.
 func SanitizePEM(asciiBlock string) string {
@@ -74,7 +74,7 @@ func SanitizePEM(asciiBlock string) string {
 // UNIVERSAL BACKEND
 //
 
-// Report ...
+// Report structure
 type Report struct {
 	Summary    bool               // add summary view to report
 	OpenSSL    bool               // add openssl view to report
@@ -85,12 +85,12 @@ type Report struct {
 	Style      *reportstyle.Style // output report style (text,html,ansi-color-console, custom ...)
 }
 
-// Decode ...
+// Decode an ascii block 
 func Decode(asciiBlock string, r *Report) string {
 	return decodeBlock(asciiBlock, r)
 }
 
-// DecodePem ..
+// DecodePem a pem block 
 func DecodePem(block *pem.Block, r *Report) string {
 	return decodePemBlock(block, r)
 }
@@ -99,7 +99,7 @@ func DecodePem(block *pem.Block, r *Report) string {
 // X509 CERT
 //
 
-// Cert ...
+// Cert analyzes an x509 certificate
 func Cert(cert *x509.Certificate, r *Report) string {
 	if r.PINOnly {
 		return KeyPinBase64(cert)
@@ -120,7 +120,7 @@ func Cert(cert *x509.Certificate, r *Report) string {
 	return s.String()
 }
 
-// CertStore ...
+// CertStore analyzes one x509 cert store
 func CertStore(store []*x509.Certificate, r *Report) string {
 	var s strings.Builder
 	for _, cert := range store {
@@ -129,7 +129,7 @@ func CertStore(store []*x509.Certificate, r *Report) string {
 	return s.String()
 }
 
-// CertStores ...
+// CertStores analyzes an array of x509 cert stores
 func CertStores(stores [][]*x509.Certificate, r *Report) string {
 	var s strings.Builder
 	for _, store := range stores {
@@ -138,7 +138,7 @@ func CertStores(stores [][]*x509.Certificate, r *Report) string {
 	return s.String()
 }
 
-// CertRequest ...
+// CertRequest analyzses an x509 csr
 func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	cr := certRequestSummary(csr, e)
 	if e.SaniFunc != nil {
@@ -149,12 +149,12 @@ func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// KeyPinBase64 ...
+// KeyPinBase64 generates an base64 encoded keypin 
 func KeyPinBase64(cert *x509.Certificate) string {
 	return base64.StdEncoding.EncodeToString([]byte(keyPin(cert)))
 }
 
-// KeyPinRaw ...
+// KeyPinRaw generates an hex encoded keypin 
 func KeyPinRaw(cert *x509.Certificate) string {
 	return hex.EncodeToString(keyPin(cert))
 }
@@ -163,14 +163,14 @@ func KeyPinRaw(cert *x509.Certificate) string {
 // KEYS SECTION
 //
 
-// PublicKey ...
+// PublicKey reports an PublicKey struct
 func PublicKey(k any, e *reportstyle.Style) string {
 	var s strings.Builder
 	s.WriteString(e.L1 + "KEY Public Key             " + e.L3 + getKey(k) + e.LE)
 	return s.String()
 }
 
-// PrivateKey ...
+// PrivateKey reports an PrivateKey struct 
 func PrivateKey(k any, e *reportstyle.Style) string {
 	var s strings.Builder
 	s.WriteString(e.L1 + "KEY Private Key            " + e.L3 + getKey(k) + e.LE)
@@ -181,7 +181,7 @@ func PrivateKey(k any, e *reportstyle.Style) string {
 // SSH SECTION
 //
 
-// SshDecodeCert ...
+// SshDecodeCert decodes an ssh certificate
 func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []byte, e *reportstyle.Style) string {
 	k := strings.Split(string(ssh.MarshalAuthorizedKey(key)), " ")
 	digest := sha256.Sum256([]byte(k[1])) // todo: fix key decoding
@@ -200,7 +200,7 @@ func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []b
 	return s.String()
 }
 
-// SshDecode ...
+// SshDecode decodes an ascii block ssh key 
 func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 	if strings.Contains(eval, "PRIVATE") {
 		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
@@ -216,7 +216,7 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 	return errString(errors.New("unsupported ssh keytype"))
 }
 
-// SshDecodePk ...
+// SshDecodePk decocdes ssh key for <any> keytype 
 func SshDecodePk(keytype, dbaa string, e *reportstyle.Style) string {
 	if e.SaniFunc != nil {
 		dbaa = e.PS + e.SaniFunc(dbaa) + e.PE

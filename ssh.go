@@ -1,4 +1,3 @@
-// package certinfo ..
 package certinfo
 
 import (
@@ -12,7 +11,6 @@ import (
 	"strconv"
 )
 
-// parseRawPrivateKey ...
 func parseRawPrivateKey(in *pem.Block) string {
 	if encryptedBlock(in) {
 		return "Encrypted KEY [PEM BLOCK]"
@@ -32,7 +30,6 @@ func parseRawPrivateKey(in *pem.Block) string {
 	return errString(errors.New("unsupported keytype"))
 }
 
-// getKey ...
 func getKey(pub any) string {
 	switch pub := pub.(type) {
 	case *rsa.PublicKey:
@@ -47,10 +44,8 @@ func getKey(pub any) string {
 	return errString(errors.New("unsupported keytype"))
 }
 
-// dbapo ...
 type dbapo struct{ Y, X int }
 
-// getDBAA ...
 func getDBAA(in string) (out string) {
 	const sep = "+-----------------+\n"
 	var bp []string
