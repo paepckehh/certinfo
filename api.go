@@ -1,4 +1,4 @@
-// package certinfo analyzes encoded keys and certificates 
+// package certinfo analyzes encoded keys and certificates
 package certinfo
 
 // import
@@ -60,7 +60,7 @@ func ReportAsHTML(asciiBlock string) string {
 	})
 }
 
-// SanitizePEM 
+// SanitizePEM
 // In : Parse any mixed ascii input.
 // Out: Sanitizes and clean re-encode any decodable certificate as new pem container.
 func SanitizePEM(asciiBlock string) string {
@@ -85,12 +85,12 @@ type Report struct {
 	Style      *reportstyle.Style // output report style (text,html,ansi-color-console, custom ...)
 }
 
-// Decode an ascii block 
+// Decode an ascii block
 func Decode(asciiBlock string, r *Report) string {
 	return decodeBlock(asciiBlock, r)
 }
 
-// DecodePem a pem block 
+// DecodePem a pem block
 func DecodePem(block *pem.Block, r *Report) string {
 	return decodePemBlock(block, r)
 }
@@ -149,12 +149,12 @@ func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// KeyPinBase64 generates an base64 encoded keypin 
+// KeyPinBase64 generates an base64 encoded keypin
 func KeyPinBase64(cert *x509.Certificate) string {
 	return base64.StdEncoding.EncodeToString([]byte(keyPin(cert)))
 }
 
-// KeyPinRaw generates an hex encoded keypin 
+// KeyPinRaw generates an hex encoded keypin
 func KeyPinRaw(cert *x509.Certificate) string {
 	return hex.EncodeToString(keyPin(cert))
 }
@@ -170,7 +170,7 @@ func PublicKey(k any, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// PrivateKey reports an PrivateKey struct 
+// PrivateKey reports an PrivateKey struct
 func PrivateKey(k any, e *reportstyle.Style) string {
 	var s strings.Builder
 	s.WriteString(e.L1 + "KEY Private Key            " + e.L3 + getKey(k) + e.LE)
@@ -200,7 +200,7 @@ func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []b
 	return s.String()
 }
 
-// SshDecode decodes an ascii block ssh key 
+// SshDecode decodes an ascii block ssh key
 func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 	if strings.Contains(eval, "PRIVATE") {
 		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
@@ -216,7 +216,7 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 	return errString(errors.New("unsupported ssh keytype"))
 }
 
-// SshDecodePk decocdes ssh key for <any> keytype 
+// SshDecodePk decocdes ssh key for <any> keytype
 func SshDecodePk(keytype, dbaa string, e *reportstyle.Style) string {
 	if e.SaniFunc != nil {
 		dbaa = e.PS + e.SaniFunc(dbaa) + e.PE
