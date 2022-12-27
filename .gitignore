@@ -10,6 +10,7 @@
 .todo
 .attic
 .dev
+.goo.*
 Makefile
 doc
 vendor
