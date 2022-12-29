@@ -1,0 +1,45 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+builds:
+  -
+    id: "certinfo"
+    binary: certinfo
+    main: ./cmd/certinfo/main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - freebsd
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+archives:
+  -
+    id: certinfo-binaries
+    name_template: "certinfo-{{ .Os }}_{{ .Arch }}_{{ .Version }}"
+    files:
+      - LICENSE.md
+      - README.md
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+nfpms:
+  -
+    file_name_template: "certinfo_package_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    vendor: Michael Paepcke
+    homepage: https://paepcke.de/certinfo
+    maintainer: Michael Paepcke <git@paepcke.de>
+    description: certinfo
+    license: BSD 3-Clause
+    formats:
+      - deb
+      - rpm
