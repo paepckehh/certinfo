@@ -11,7 +11,7 @@
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
-# DOWNLOAD (prebuild)
+### DOWNLOAD (prebuild)
 
 [github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
 

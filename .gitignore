@@ -1,5 +1,6 @@
 .build.sh
 .build.hqx
+.norelease
 .info
 .appname
 .export
