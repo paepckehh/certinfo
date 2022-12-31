@@ -54,7 +54,7 @@ func main() {
 			out(certinfo.Decode(readFile(os.Args[i]), report))
 		}
 	default:
-		errExit("no pipe or input parameter found, example: certinfo file.txt")
+		errExit("no pipe or input parameter found, example: certinfo file.txt\n")
 	}
 }
 
