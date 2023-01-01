@@ -13,13 +13,14 @@ import (
 
 // const
 const (
-	_app     = "[certinfo] "
-	_err     = "[error] "
-	_html    = "HTML"
-	_noColor = "NO_COLOR"
-	_verbose = "VERBOSE"
-	_pemonly = "PEMONLY"
-	_pinonly = "PINONLY"
+	_app      = "[certinfo] "
+	_err      = "[error] "
+	_html     = "HTML"
+	_noColor  = "NO_COLOR"
+	_verbose  = "VERBOSE"
+	_pemonly  = "PEMONLY"
+	_pinonly  = "PINONLY"
+	_linefeed = "\n"
 )
 
 // main ...
@@ -54,7 +55,7 @@ func main() {
 			out(certinfo.Decode(readFile(os.Args[i]), report))
 		}
 	default:
-		errExit("no pipe or input parameter found, example: certinfo file.txt\n")
+		errExit("no pipe or input parameter found, example: certinfo file.txt")
 	}
 }
 
@@ -69,7 +70,7 @@ func out(msg string) {
 
 // errExit
 func errExit(msg string) {
-	out(_app + _err + msg)
+	out(_app + _err + msg + _linefeed)
 	os.Exit(1)
 }
 
