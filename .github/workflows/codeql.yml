@@ -1,14 +1,11 @@
 name: "CodeQL"
-
 on:
   push:
     branches: [ "master" ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ "master" ]
   schedule:
     - cron: '31 1 * * 5'
-
 jobs:
   analyze:
     name: Analyze
@@ -17,23 +14,14 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
     strategy:
       fail-fast: false
       matrix:
         language: [ 'go' ]
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+    - uses: actions/checkout@v3
+    - uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-    
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+    - uses: github/codeql-action/autobuild@v2
+    - uses: github/codeql-action/analyze@v2

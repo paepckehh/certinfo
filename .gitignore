@@ -12,6 +12,7 @@
 .attic
 .dev
 .goo.*
+.nowin
 Makefile
 doc
 vendor
