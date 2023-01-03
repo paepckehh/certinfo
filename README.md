@@ -75,6 +75,10 @@ HTML=true certinfo certs.txt
 [...]
 ```
 
+# TODO:
+
+[] optional SCT log verification (online/leaky)
+
 # CONTRIBUTION
 
 Yes, Please! PRs Welcome! 
