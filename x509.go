@@ -1,6 +1,7 @@
 package certinfo
 
 import (
+	//nolint:all yes, we must detect/analyze legecy
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -227,7 +228,8 @@ func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	// result, t := e.Fail, cert.NotAfter.Sub(time.Now())
 	result, t := e.Fail, time.Until(cert.NotAfter)
-	tss, h := ftoa64(math.Abs(float64(t.Hours())))+_hours, t.Hours()
+	h := t.Hours()
+	var tss string
 	if h > 72 || h < -72 {
 		days := int(t.Hours() / 24)
 		tss = ftoa64(math.Abs(float64(days))) + _days
@@ -237,7 +239,8 @@ func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	} else {
 		result = e.Fail + _since + tss + _closebracket
 	}
-	t = cert.NotBefore.Sub(time.Now())
+	// t = cert.NotBefore.Sub(time.Now())
+	t = time.Until(cert.NotBefore)
 	if t > 0 {
 		tss = ftoa64(math.Abs(float64(t.Hours()))) + _hours
 		if t.Hours() > 72 {

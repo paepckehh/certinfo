@@ -1,6 +1,7 @@
 package certinfo
 
 import (
+	//nolint:all yes, we must detect/analyze legecy
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/ed25519"
