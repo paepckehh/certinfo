@@ -227,9 +227,9 @@ func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 
 func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	// result, t := e.Fail, cert.NotAfter.Sub(time.Now())
-	result, t := e.Fail, time.Until(cert.NotAfter)
+	t := time.Until(cert.NotAfter)
 	h := t.Hours()
-	var tss string
+	var result, tss string
 	if h > 72 || h < -72 {
 		days := int(t.Hours() / 24)
 		tss = ftoa64(math.Abs(float64(days))) + _days

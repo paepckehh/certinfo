@@ -208,7 +208,8 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 			return errString(err)
 		}
 		digest := sha256.Sum256([]byte(fmt.Sprintf("%v", key))) // replace fmt via encoding/hex
-		dbaa := getDBAA(fmt.Sprintf(string(digest[:])))
+		// dbaa := getDBAA(fmt.Sprintf(string(digest[:])))
+		dbaa := getDBAA(string(digest[:]))
 		block, _ := pem.Decode([]byte(asciiBlock))
 		keytype := parseRawPrivateKey(block)
 		return SshDecodePk(keytype, dbaa, e)
