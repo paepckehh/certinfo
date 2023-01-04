@@ -349,24 +349,24 @@ var (
 	oidExtensionSubjectKeyId               = asn1.ObjectIdentifier{2, 5, 29, 14}
 	oidExtensionKeyUsage                   = asn1.ObjectIdentifier{2, 5, 29, 15}
 	oidExtensionExtendedKeyUsage           = asn1.ObjectIdentifier{2, 5, 29, 37}
-	oidExtensionAuthorityKeyId             = asn1.ObjectIdentifier{2, 5, 29, 35}
+//	oidExtensionAuthorityKeyId             = asn1.ObjectIdentifier{2, 5, 29, 35}
 	oidExtensionBasicConstraints           = asn1.ObjectIdentifier{2, 5, 29, 19}
 	oidExtensionSubjectAltName             = asn1.ObjectIdentifier{2, 5, 29, 17}
-	oidExtensionCertificatePolicies        = asn1.ObjectIdentifier{2, 5, 29, 32}
+//	oidExtensionCertificatePolicies        = asn1.ObjectIdentifier{2, 5, 29, 32}
 	oidExtensionNameConstraints            = asn1.ObjectIdentifier{2, 5, 29, 30}
-	oidExtensionCRLDistributionPoints      = asn1.ObjectIdentifier{2, 5, 29, 31}
-	oidExtensionIssuerAltName              = asn1.ObjectIdentifier{2, 5, 29, 18}
-	oidExtensionSubjectDirectoryAttributes = asn1.ObjectIdentifier{2, 5, 29, 9}
-	oidExtensionInhibitAnyPolicy           = asn1.ObjectIdentifier{2, 5, 29, 54}
-	oidExtensionPolicyConstraints          = asn1.ObjectIdentifier{2, 5, 29, 36}
-	oidExtensionPolicyMappings             = asn1.ObjectIdentifier{2, 5, 29, 33}
+//	oidExtensionCRLDistributionPoints      = asn1.ObjectIdentifier{2, 5, 29, 31}
+//	oidExtensionIssuerAltName              = asn1.ObjectIdentifier{2, 5, 29, 18}
+//	oidExtensionSubjectDirectoryAttributes = asn1.ObjectIdentifier{2, 5, 29, 9}
+//	oidExtensionInhibitAnyPolicy           = asn1.ObjectIdentifier{2, 5, 29, 54}
+//	oidExtensionPolicyConstraints          = asn1.ObjectIdentifier{2, 5, 29, 36}
+//	oidExtensionPolicyMappings             = asn1.ObjectIdentifier{2, 5, 29, 33}
 	oidExtensionFreshestCRL                = asn1.ObjectIdentifier{2, 5, 29, 46}
 	oidExtensionAuthorityInfoAccess        = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 1}
 	oidExtensionSubjectInfoAccess          = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 11}
 	oidExtensionCTPoison                   = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 3}
 	oidExtensionCTSCT                      = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2}
 	oidExtensionIPPrefixList               = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 7}
-	oidExtensionASList                     = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 8}
+//	oidExtensionASList                     = asn1.ObjectIdentifier{1, 3, 6, 1, 5, 5, 7, 1, 8}
 )
 
 func keyUsageToString(k x509.KeyUsage) (string, bool) {

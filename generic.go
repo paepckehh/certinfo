@@ -185,5 +185,4 @@ func shortMsgArrayURL(in []*url.URL) string {
 
 func itoa(in int) string       { return strconv.Itoa(in) }
 func ftoa64(in float64) string { return strconv.FormatFloat(in, 'f', 0, 64) }
-func itoa64(in int64) string   { return strconv.FormatInt(in, 10) }
 func out(msg string)           { os.Stdout.Write([]byte(msg + _linefeed)) }
