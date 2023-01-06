@@ -355,6 +355,20 @@ var (
 	oidExtensionCTSCT    = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2}
 )
 
+func oidInExtensions(oid asn1.ObjectIdentifier, extensions []pkix.Extension) (int, bool) {
+	count := 0
+	critical := false
+	for _, ext := range extensions {
+		if ext.Id.Equal(oid) {
+			count++
+			if ext.Critical {
+				critical = true
+			}
+		}
+	}
+	return count, critical
+}
+
 func keyUsageToString(k x509.KeyUsage) (string, bool) {
 	var s strings.Builder
 	caAlert := false
@@ -421,20 +435,6 @@ func extKeyUsageToString(u x509.ExtKeyUsage, e *reportstyle.Style) string {
 	default:
 		return shortMsg("Unknown")
 	}
-}
-
-func oidInExtensions(oid asn1.ObjectIdentifier, extensions []pkix.Extension) (int, bool) {
-	count := 0
-	critical := false
-	for _, ext := range extensions {
-		if ext.Id.Equal(oid) {
-			count++
-			if ext.Critical {
-				critical = true
-			}
-		}
-	}
-	return count, critical
 }
 
 func curveState(curve elliptic.Curve) (string, bool) {
