@@ -3,13 +3,16 @@
 .attic
 .build.hqx
 .build.sh
+.codeberg.org
 .commit
 .dev
 .export
+.github.com
 .goo.*
 .info
 .norelease
 .nowin
+.sr.ht
 .summary.txt
 .tag
 .todo
