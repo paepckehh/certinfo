@@ -351,8 +351,8 @@ func sct(cert *x509.Certificate, _ *reportstyle.Style) string {
 var (
 	oidExtensionKeyUsage         = asn1.ObjectIdentifier{2, 5, 29, 15}
 	oidExtensionExtendedKeyUsage = asn1.ObjectIdentifier{2, 5, 29, 37}
-	oidExtensionCTPoison = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 3}
-	oidExtensionCTSCT    = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2}
+	oidExtensionCTPoison         = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 3}
+	oidExtensionCTSCT            = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 11129, 2, 4, 2}
 )
 
 func oidInExtensions(oid asn1.ObjectIdentifier, extensions []pkix.Extension) (int, bool) {

@@ -45,6 +45,10 @@ func getKey(pub any) string {
 	return errString(errors.New("unsupported keytype"))
 }
 
+//
+// SSH KEY ASCII REP
+//
+
 type dbapo struct{ Y, X int }
 
 func getDBAA(in string) (out string) {
