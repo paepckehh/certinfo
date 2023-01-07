@@ -161,7 +161,7 @@ func pubKey(pub any, e *reportstyle.Style) string {
 	case *dsa.PublicKey:
 		return e.Fail + " [DSA] "
 	case *ecdsa.PublicKey:
-		curve, ok := curveState(pub.Curve)
+		curve, ok := isCurveValid(pub.Curve)
 		if ok {
 			return e.Valid + " [ECDSA] " + curve
 		}
@@ -330,9 +330,8 @@ func sct(cert *x509.Certificate, _ *reportstyle.Style) string {
 // LEGACY SECTION
 //
 
-// [based|inspired|modified|extended|forked] from [github.com/google/certificate-transparency-go]
-// forked from [crypto/x509]
-// forked [based] on RFC...
+// keywords from [github.com/google/certificate-transparency-go]
+// forked from golang [crypto/x509], based on RFC / ASN spec keywords (!)
 //
 // Copyright 2016 Google LLC. All Rights Reserved.
 //
@@ -404,40 +403,46 @@ func keyUsageToString(k x509.KeyUsage) (string, bool) {
 }
 
 func extKeyUsageToString(u x509.ExtKeyUsage, e *reportstyle.Style) string {
+	var s strings.Builder
 	switch u {
-	case x509.ExtKeyUsageAny:
-		return e.Alert + shortMsg("Any")
 	case x509.ExtKeyUsageServerAuth:
-		return shortMsg("TLS Web server authentication")
+		s.WriteString(shortMsg("TLS Web server authentication"))
 	case x509.ExtKeyUsageClientAuth:
-		return shortMsg("TLS Web client authentication")
+		s.WriteString(shortMsg("TLS Web client authentication"))
 	case x509.ExtKeyUsageCodeSigning:
-		return e.Alert + shortMsg("Signing of executable code")
+		s.WriteString(e.Alert + shortMsg("Signing of executable code"))
 	case x509.ExtKeyUsageEmailProtection:
-		return shortMsg("Email protection")
+		s.WriteString(shortMsg("Email protection"))
 	case x509.ExtKeyUsageIPSECEndSystem:
-		return e.Alert + shortMsg("IPSEC end system")
+		s.WriteString(e.Alert)
+		s.WriteString(shortMsg("IPSEC end system"))
 	case x509.ExtKeyUsageIPSECTunnel:
-		return e.Alert + shortMsg("IPSEC tunnel")
+		s.WriteString(e.Alert)
+		s.WriteString(shortMsg("IPSEC tunnel"))
 	case x509.ExtKeyUsageIPSECUser:
-		return e.Alert + shortMsg("IPSEC user")
+		s.WriteString(e.Alert)
+		s.WriteString(shortMsg("IPSEC user"))
 	case x509.ExtKeyUsageTimeStamping:
-		return shortMsg("Time stamping")
+		s.WriteString(shortMsg("Time stamping"))
 	case x509.ExtKeyUsageOCSPSigning:
-		return shortMsg("OCSP signing")
+		s.WriteString(shortMsg("OCSP signing"))
 	case x509.ExtKeyUsageMicrosoftServerGatedCrypto:
-		return shortMsg("Microsoft server gated cryptography")
+		s.WriteString(shortMsg("Microsoft server gated cryptography"))
 	case x509.ExtKeyUsageNetscapeServerGatedCrypto:
-		return shortMsg("Netscape server gated cryptography")
+		s.WriteString(shortMsg("Netscape server gated cryptography"))
+	case x509.ExtKeyUsageAny:
+		s.WriteString(e.Alert)
+		s.WriteString(shortMsg("Any"))
 	// todo: need update for crypto/x509 upstream
 	// case x509.ExtKeyUsageCertificateTransparency:
 	// 	return shortMsg("Certificate transparency")
 	default:
-		return shortMsg("Unknown")
+		s.WriteString(shortMsg("Unknown"))
 	}
+	return s.String()
 }
 
-func curveState(curve elliptic.Curve) (string, bool) {
+func isCurveValid(curve elliptic.Curve) (string, bool) {
 	switch curve {
 	case elliptic.P256():
 		return shortMsg("prime256v1"), true

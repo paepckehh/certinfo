@@ -62,31 +62,6 @@ func decodeBlock(asciiBlock string, r *Report) string {
 	return "[certinfo] [unable to decode] [pem:failed] [ssh:failed]"
 }
 
-func sanitizer(in string) (full, cut string, err error) {
-	var s strings.Builder
-	scanner := bufio.NewScanner(strings.NewReader(in))
-	isCert := false
-	for scanner.Scan() {
-		line := scanner.Text()
-		switch {
-		case isCert:
-			s.WriteString(line + _linefeed)
-			if strings.HasPrefix(line, _marker) {
-				isCert = false
-			}
-		case strings.HasPrefix(line, _marker):
-			s.WriteString(line + _linefeed)
-			isCert = true
-		}
-	}
-	full = s.String()
-	if len(full) < 32 {
-		return _empty, _empty, errors.New("too short")
-	}
-	cut = full[:32]
-	return full, cut, nil
-}
-
 func multipartDecodeParallel(asciiBlock string, r *Report) string {
 	var (
 		bg    sync.WaitGroup
@@ -116,6 +91,31 @@ func multipartDecodeParallel(asciiBlock string, r *Report) string {
 		s.WriteString(ss)
 	}
 	return s.String()
+}
+
+func sanitizer(in string) (full, cut string, err error) {
+	var s strings.Builder
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	isCert := false
+	for scanner.Scan() {
+		line := scanner.Text()
+		switch {
+		case isCert:
+			s.WriteString(line + _linefeed)
+			if strings.HasPrefix(line, _marker) {
+				isCert = false
+			}
+		case strings.HasPrefix(line, _marker):
+			s.WriteString(line + _linefeed)
+			isCert = true
+		}
+	}
+	full = s.String()
+	if len(full) < 32 {
+		return _empty, _empty, errors.New("too short")
+	}
+	cut = full[:32]
+	return full, cut, nil
 }
 
 //
@@ -182,6 +182,10 @@ func shortMsgArrayURL(in []*url.URL) string {
 	}
 	return short(s.String())
 }
+
+//
+// LITTLE HELPER SECTION
+//
 
 func itoa(in int) string       { return strconv.Itoa(in) }
 func ftoa64(in float64) string { return strconv.FormatFloat(in, 'f', 0, 64) }

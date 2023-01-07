@@ -1,7 +1,6 @@
 // package certinfo analyzes encoded keys and certificates
 package certinfo
 
-// import
 import (
 	"crypto/sha256"
 	"crypto/x509"
@@ -85,19 +84,29 @@ type Report struct {
 	Style      *reportstyle.Style // output report style (text,html,ansi-color-console, custom ...)
 }
 
-// Decode an ascii block
-func Decode(asciiBlock string, r *Report) string {
-	return decodeBlock(asciiBlock, r)
-}
-
 // DecodePem a pem block
 func DecodePem(block *pem.Block, r *Report) string {
 	return decodePemBlock(block, r)
 }
 
+// Decode an ascii block
+func Decode(asciiBlock string, r *Report) string {
+	return decodeBlock(asciiBlock, r)
+}
+
 //
 // X509 CERT
 //
+
+// KeyPinBase64 generates an base64 encoded keypin
+func KeyPinBase64(cert *x509.Certificate) string {
+	return base64.StdEncoding.EncodeToString([]byte(keyPin(cert)))
+}
+
+// KeyPinRaw generates an hex encoded keypin
+func KeyPinRaw(cert *x509.Certificate) string {
+	return hex.EncodeToString(keyPin(cert))
+}
 
 // Cert analyzes an x509 certificate
 func Cert(cert *x509.Certificate, r *Report) string {
@@ -149,16 +158,6 @@ func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	return s.String()
 }
 
-// KeyPinBase64 generates an base64 encoded keypin
-func KeyPinBase64(cert *x509.Certificate) string {
-	return base64.StdEncoding.EncodeToString([]byte(keyPin(cert)))
-}
-
-// KeyPinRaw generates an hex encoded keypin
-func KeyPinRaw(cert *x509.Certificate) string {
-	return hex.EncodeToString(keyPin(cert))
-}
-
 //
 // KEYS SECTION
 //
@@ -181,6 +180,23 @@ func PrivateKey(k any, e *reportstyle.Style) string {
 // SSH SECTION
 //
 
+// SshDecode decodes an ascii block ssh key
+func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
+	if strings.Contains(eval, "PRIVATE") {
+		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
+		if err != nil {
+			return errString(err)
+		}
+		digest := sha256.Sum256([]byte(fmt.Sprintf("%v", key))) // replace fmt via encoding/hex
+		// dbaa := getDBAA(fmt.Sprintf(string(digest[:])))
+		dbaa := getDBAA(string(digest[:]))
+		block, _ := pem.Decode([]byte(asciiBlock))
+		keytype := parseRawPrivateKey(block)
+		return SshDecodePk(keytype, dbaa, e)
+	}
+	return errString(errors.New("unsupported ssh keytype"))
+}
+
 // SshDecodeCert decodes an ssh certificate
 func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []byte, e *reportstyle.Style) string {
 	k := strings.Split(string(ssh.MarshalAuthorizedKey(key)), " ")
@@ -198,23 +214,6 @@ func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []b
 	s.WriteString(e.L1 + "SSH Key Finger Print       " + e.L2 + k[1] + e.LE)
 	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + e.LE)
 	return s.String()
-}
-
-// SshDecode decodes an ascii block ssh key
-func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
-	if strings.Contains(eval, "PRIVATE") {
-		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
-		if err != nil {
-			return errString(err)
-		}
-		digest := sha256.Sum256([]byte(fmt.Sprintf("%v", key))) // replace fmt via encoding/hex
-		// dbaa := getDBAA(fmt.Sprintf(string(digest[:])))
-		dbaa := getDBAA(string(digest[:]))
-		block, _ := pem.Decode([]byte(asciiBlock))
-		keytype := parseRawPrivateKey(block)
-		return SshDecodePk(keytype, dbaa, e)
-	}
-	return errString(errors.New("unsupported ssh keytype"))
 }
 
 // SshDecodePk decocdes ssh key for <any> keytype
