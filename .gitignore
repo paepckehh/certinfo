@@ -21,3 +21,5 @@
 Makefile
 doc
 vendor
+certinfo
+cmd/certinfo/certinfo
