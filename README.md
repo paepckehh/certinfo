@@ -79,6 +79,10 @@ HTML=true certinfo certs.txt
 
 [] optional SCT log verification (online/leaky)
 
+# DOCS
+
+[pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
+
 # CONTRIBUTION
 
 Yes, Please! PRs Welcome! 
