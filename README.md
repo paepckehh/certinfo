@@ -1,5 +1,5 @@
 # OVERVIEW
-[![Go Report Card](https://img.shields.io/badge/go%20report-A+-brightgreen.svg?style=flat)](https://goreportcard.com/report/paepcke.de/certinfo)
+[![Go Report Card](https://goreportcard.com/badge/paepcke.de/certinfo)](https://goreportcard.com/report/paepcke.de/certinfo)
 
 [paepche.de/certinfo](https://paepcke.de/certinfo/)
 
