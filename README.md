@@ -3,8 +3,8 @@
 
 [paepche.de/certinfo](https://paepcke.de/certinfo/)
 
--   Tired of guess all the cmd switches for [openssl|certutil|...] to decode an simple certificate ?
--   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo ...
+-   Tired of guess all the cmd switches for [openssl|certutil|...] to decode certificates ?
+-   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo
 
 # INSTALL
 
