@@ -20,5 +20,7 @@
 .version
 Makefile
 doc
+external_trust.pem
+rootCA.pem
 vendor
 cmd/certinfo/certinfo
