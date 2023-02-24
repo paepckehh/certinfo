@@ -13,5 +13,5 @@ golang.org/x/text v0.7.0 h1:4BRB4x83lYWy72KwLD/qYDuTu7q9PjSagHvijDw7cLo=
 golang.org/x/text v0.7.0/go.mod h1:mrYo+phRRbMaCq/xk9113O4dZlRixOauAjOtrjsXDZ8=
 k8s.io/klog/v2 v2.80.1 h1:atnLQ121W371wYYFawwYx1aEY2eUfs4l3J72wtgAwV4=
 k8s.io/klog/v2 v2.80.1/go.mod h1:y1WjHnz7Dj687irZUWR/WLkLc5N1YHtjLdmgWjndZn0=
-paepcke.de/reportstyle v0.1.10 h1:oiQHwt7TT7Lw1WVfCir0VFydW/C5WXcPychv3+eATYo=
-paepcke.de/reportstyle v0.1.10/go.mod h1:n8RawMbFocJ+xICuqY6RAsGgEvOrgAeSXA/Myu5ecPE=
+paepcke.de/reportstyle v0.1.11 h1:OjUV9iWaeITkSBGq0x8PhHQ+65nD349hKv/FpzW87ps=
+paepcke.de/reportstyle v0.1.11/go.mod h1:n8RawMbFocJ+xICuqY6RAsGgEvOrgAeSXA/Myu5ecPE=
