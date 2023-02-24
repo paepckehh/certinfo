@@ -1,7 +1,7 @@
 # OVERVIEW
 [![Go Reference](https://pkg.go.dev/badge/paepcke.de/certinfo.svg)](https://pkg.go.dev/paepcke.de/certinfo) [![Go Report Card](https://goreportcard.com/badge/paepcke.de/certinfo)](https://goreportcard.com/report/paepcke.de/certinfo) [![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
 
-[paepche.de/certinfo](https://paepcke.de/certinfo/)
+[paepcke.de/certinfo](https://paepcke.de/certinfo/)
 
 -   Tired of guess all the cmd switches for [openssl|certutil|...] to decode certificates ?
 -   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo
