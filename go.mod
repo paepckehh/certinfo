@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/google/certificate-transparency-go v1.1.5
 	golang.org/x/crypto v0.8.0
-	paepcke.de/reportstyle v0.1.14
+	paepcke.de/reportstyle v0.1.15
 )
 
 require (
