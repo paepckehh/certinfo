@@ -10,5 +10,5 @@ golang.org/x/term v0.20.0 h1:VnkxpohqXaOBYJtBmEppKUG6mXpi+4O6purfc2+sMhw=
 golang.org/x/term v0.20.0/go.mod h1:8UkIAJTvZgivsXaD6/pH6U9ecQzZ45awqEOzuCvwpFY=
 k8s.io/klog/v2 v2.120.1 h1:QXU6cPEOIslTGvZaXvFWiP9VKyeet3sawzTOvdXb4Vw=
 k8s.io/klog/v2 v2.120.1/go.mod h1:3Jpz1GvMt720eyJH1ckRHK1EDfpxISzJ7I9OYgaDtPE=
-paepcke.de/reportstyle v0.1.22 h1:IXkBRl8LJg1d8aOrpAJjy3GR38AsHGsYFHZMxRPvcRA=
-paepcke.de/reportstyle v0.1.22/go.mod h1:n8RawMbFocJ+xICuqY6RAsGgEvOrgAeSXA/Myu5ecPE=
+paepcke.de/reportstyle v0.1.24 h1:AfZ71Zp3QpfFoLDyA0jcvNM3uHGwi9qxabLhlmDOgMg=
+paepcke.de/reportstyle v0.1.24/go.mod h1:q+a+NhIzxC9nd9EhiTE3gipt8DNybQI8lnyDWRJ0tjg=
