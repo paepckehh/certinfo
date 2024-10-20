@@ -16,6 +16,7 @@
 go run paepcke.de/certinfo/cmd/certinfo@latest
 
 ```
+
 # INSTALL
 
 ```
@@ -104,7 +105,7 @@ This project is licensed under the terms of the `BSD 3-Clause License` license. 
 ```bibtex
 @misc{certinfo,
   author = {Michael Paepcke},
-  title = {analyze and troubleshoot certificates (x.509, ssh-certs, keys, ...)},
+  title = {Tool to analyze and troubleshoot x.509 & ssh certificates, encoded keys, ... (app/lib/api)},
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
