@@ -1,5 +1,9 @@
 # OVERVIEW
-[![Go Reference](https://pkg.go.dev/badge/paepcke.de/certinfo.svg)](https://pkg.go.dev/paepcke.de/certinfo) [![Go Report Card](https://goreportcard.com/badge/paepcke.de/certinfo)](https://goreportcard.com/report/paepcke.de/certinfo) [![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
+[![Go Reference](https://pkg.go.dev/badge/paepcke.de/certinfo.svg)](https://pkg.go.dev/paepcke.de/certinfo)
+[![Go Report Card](https://goreportcard.com/badge/paepcke.de/certinfo)](https://goreportcard.com/report/paepcke.de/certinfo)
+[![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
+[![License](https://img.shields.io/github/license/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/blob/master/LICENSE)
+[![SemVer](https://img.shields.io/github/v/release/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/releases/latest)
 
 [paepcke.de/certinfo](https://paepcke.de/certinfo/)
 
@@ -12,9 +16,8 @@
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
-### DOWNLOAD (prebuild)
-
-[github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
+# PRE-BUILD BINARIES (DOWNLOAD)
+[https://github.com/paepckehh/tlsinfo/releases](https://github.com/paepckehh/tlsinfo/releases)
 
 # SHOWTIME
 
@@ -84,6 +87,26 @@ HTML=true certinfo certs.txt
 
 [pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
 
+# 🛡 License
+
+[![License](https://img.shields.io/github/license/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/blob/master/LICENSE)
+
+This project is licensed under the terms of the `BSD 3-Clause License` license. See [LICENSE](https://github.com/paepckehh/certinfo/blob/master/LICENSE) for more details.
+
+# 📃 Citation
+
+```bibtex
+@misc{certinfo,
+  author = {Michael Paepcke},
+  title = {analyze and troubleshoot certificates (x.509, ssh-certs, keys, ...)},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://paepcke.de/certinfo}}
+}
+```
+
 # CONTRIBUTION
 
 Yes, Please! PRs Welcome! 
+
