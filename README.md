@@ -4,6 +4,7 @@
 [![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
 [![License](https://img.shields.io/github/license/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/blob/master/LICENSE)
 [![SemVer](https://img.shields.io/github/v/release/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/releases/latest)
+<br>[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
 
 [paepcke.de/certinfo](https://paepcke.de/certinfo/)
 
