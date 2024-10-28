@@ -4,7 +4,7 @@
 [![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
 [![License](https://img.shields.io/github/license/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/blob/master/LICENSE)
 [![SemVer](https://img.shields.io/github/v/release/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/releases/latest)
-<br>[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
+<br>[![built with nix](https://builtwithnix.org/badge.svg)](https://search.nixos.org/packages?channel=unstable&show=certinfo-go&from=0&size=50&sort=relevance&type=packages&query=certinfo-go)
 
 [paepcke.de/certinfo](https://paepcke.de/certinfo/)
 
