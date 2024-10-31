@@ -21,7 +21,7 @@ go run paepcke.de/certinfo/cmd/certinfo@latest
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
-# PRE-BUILD BINARIES (DOWNLOAD)
+# ⚡️PRE-BUILD BINARIES (DOWNLOAD)
 [https://github.com/paepckehh/tlsinfo/releases](https://github.com/paepckehh/tlsinfo/releases)
 
 # ⚡️HOW TO RUN ON NIXOS
@@ -36,7 +36,7 @@ environment.systemPackages = [
 ];
 ```
 
-# SHOWTIME
+# ⚡️SHOWTIME
 
 ## Summary of all certificates (multipart-pem-decode)
 
