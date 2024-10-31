@@ -11,21 +11,30 @@
 -   Tired of guess all the cmd switches for [openssl|certutil|...] to decode certificates ?
 -   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo
 
-# RUN
-
+# ⚡️HOW TO RUN VIA GO
 ```
 go run paepcke.de/certinfo/cmd/certinfo@latest
-
 ```
 
-# INSTALL
-
+# ⚡️HOW TO INSTALL VIA GO
 ```
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
 # PRE-BUILD BINARIES (DOWNLOAD)
 [https://github.com/paepckehh/tlsinfo/releases](https://github.com/paepckehh/tlsinfo/releases)
+
+# ⚡️HOW TO RUN ON NIXOS
+```
+nix-shell -p certinfo-go
+```
+
+# ⚡️HOW TO INSTALL ON NIXOS
+```
+environment.systemPackages = [
+  pkgs.certinfo-go
+];
+```
 
 # SHOWTIME
 
