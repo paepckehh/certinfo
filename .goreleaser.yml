@@ -21,7 +21,7 @@ archives:
     id: certinfo-binaries
     name_template: "certinfo-{{ .Os }}_{{ .Arch }}_{{ .Version }}"
     files:
-      - LICENSE.md
+      - LICENSE
       - README.md
 checksum:
   name_template: 'checksums.txt'
