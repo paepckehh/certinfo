@@ -1,7 +1,7 @@
 package certinfo
 
 import (
-	//nolint:all yes, we must detect/analyze legecy
+	//lint:ignore SA41019 we need to analyse old and broken certs as well
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -12,6 +12,7 @@ import (
 	"strconv"
 )
 
+// parseRawPrivateKey ...
 func parseRawPrivateKey(in *pem.Block) string {
 	if encryptedBlock(in) {
 		return "Encrypted KEY [PEM BLOCK]"
@@ -31,6 +32,7 @@ func parseRawPrivateKey(in *pem.Block) string {
 	return errString(errors.New("unsupported keytype"))
 }
 
+// getKey ...
 func getKey(pub any) string {
 	switch pub := pub.(type) {
 	case *rsa.PublicKey:
@@ -49,8 +51,10 @@ func getKey(pub any) string {
 // SSH KEY ASCII REP
 //
 
+// dbapo ...
 type dbapo struct{ Y, X int }
 
+// getDBAA ...
 func getDBAA(in string) (out string) {
 	const sep = "+-----------------+\n"
 	var bp []string

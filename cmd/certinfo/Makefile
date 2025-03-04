@@ -3,10 +3,9 @@ all:
 
 check: 
 	gofmt -w -s .
+	go vet .
 	staticcheck
-
-clean:
+	golangci-lint run
 
 examples:
-	
 	go run main.go example.txt

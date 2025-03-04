@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 	"os"
 	"syscall"
 
@@ -51,7 +52,7 @@ func main() {
 			out(certinfo.Decode(readFile(os.Args[i]), report))
 		}
 	default:
-		errExit("no pipe or input parameter found, example: certinfo file.txt")
+		log.Fatal(_app + _err + "no pipe or input parameter found, example: certinfo file.txt")
 	}
 }
 
@@ -64,12 +65,6 @@ func out(msg string) {
 	os.Stdout.Write([]byte(msg))
 }
 
-// errExit
-func errExit(msg string) {
-	out(_app + _err + msg + _linefeed)
-	os.Exit(1)
-}
-
 // isPipe ...
 func isPipe() bool {
 	out, _ := os.Stdin.Stat()
@@ -80,7 +75,7 @@ func isPipe() bool {
 func getPipe() string {
 	pipe, err := io.ReadAll(os.Stdin)
 	if err != nil {
-		errExit("reading data from pipe")
+		log.Fatal(_app + _err + "reading data from pipe")
 	}
 	return string(pipe)
 }
@@ -102,7 +97,7 @@ func isEnv(in string) bool {
 func readFile(filename string) string {
 	file, err := os.ReadFile(filename)
 	if err != nil {
-		errExit("unable to read file: " + err.Error())
+		log.Fatal(_app + _err + "unable to read file: " + err.Error())
 	}
 	return string(file)
 }
