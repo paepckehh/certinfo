@@ -1,6 +1,6 @@
 module paepcke.de/certinfo
 
-go 1.23.5
+go 1.24.1
 
 require (
 	github.com/google/certificate-transparency-go v1.3.1
