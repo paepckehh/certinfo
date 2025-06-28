@@ -62,7 +62,7 @@ func main() {
 
 // out ...
 func out(msg string) {
-	os.Stdout.Write([]byte(msg))
+	_, _ = os.Stdout.Write([]byte(msg))
 }
 
 // isPipe ...
