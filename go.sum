@@ -6,5 +6,5 @@ golang.org/x/sys v0.37.0 h1:fdNQudmxPjkdUTPnLn5mdQv7Zwvbvpaxqs831goi9kQ=
 golang.org/x/sys v0.37.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/term v0.36.0 h1:zMPR+aF8gfksFprF/Nc/rd1wRS1EI6nDBGyWAvDzx2Q=
 golang.org/x/term v0.36.0/go.mod h1:Qu394IJq6V6dCBRgwqshf3mPF85AqzYEzofzRdZkWss=
-paepcke.de/reportstyle v0.1.25 h1:PXBSlXSa5wxQ3ZlpFvQV7mxbVKZaabyE/D5iKg0BPwA=
-paepcke.de/reportstyle v0.1.25/go.mod h1:STzBTevP9KMX99UGrItEFgVK+JIGk4JaQkdPLbuv3A4=
+paepcke.de/reportstyle v0.1.26 h1:W3kuOJupRMg9piOJiR/bStbawPRXbUnPHJ0iZa0fsN0=
+paepcke.de/reportstyle v0.1.26/go.mod h1:9AB84kh2nSVrnIBSweF717ZObqMu71nyjNSDdPM+ZqA=
