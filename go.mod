@@ -3,7 +3,7 @@ module paepcke.de/certinfo
 go 1.25.5
 
 require (
-	github.com/google/certificate-transparency-go v1.3.2
+	github.com/google/certificate-transparency-go v1.3.3
 	golang.org/x/crypto v0.48.0
 	paepcke.de/reportstyle v0.1.28
 )
