@@ -74,11 +74,9 @@ func multipartDecodeParallel(asciiBlock string, r *Report) string {
 		for len(block) > 32 {
 			pem, rest := pem.Decode(block)
 			if pem != nil {
-				bg.Add(1)
-				go func() {
+				bg.Go(func() {
 					dChan <- decodePemBlock(pem, r)
-					bg.Done()
-				}()
+				})
 			}
 			if bytes.Equal(block, rest) {
 				break
