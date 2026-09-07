@@ -4,7 +4,7 @@ go 1.26.1
 
 require (
 	github.com/google/certificate-transparency-go v1.3.3
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	paepcke.de/reportstyle v0.1.28
 )
 
