@@ -21,8 +21,9 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.58). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- SemVer tags are `v0.1.N` (current: v0.1.59). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
 - Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`).
+- `go.mod` requires **Go 1.27.2** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
 
 ## Architecture
 
@@ -30,9 +31,9 @@ Root package `certinfo` is the library API; `cmd/certinfo` is a thin CLI on top.
 
 Data flow (input → output):
 1. `Decode(asciiBlock, *Report)` (api.go:93) is the universal entry point.
-2. `decodeBlock` (generic.go:44) sanitizes input (strips everything outside `-----` PEM markers, but keeps `ssh-` authorized-key lines) and dispatches: SSH private key → `SshDecode`, `ssh-` authorized key/cert → `SshDecodeCert`, anything else with `BEGIN` → `multipartDecodeParallel`.
-3. `multipartDecodeParallel` (generic.go:67) loops `pem.Decode` over the whole input and decodes each block concurrently (WaitGroup + channel), so concatenated/multipart PEM and noisy truststore dumps work.
-4. x509 analysis lives in x509.go (`certSummary`, `certOpenSSL`, `certPem`), SSH in ssh.go.
+2. `decodeBlock` (generic.go:45) sanitizes input (keeps only `-----` PEM blocks and `ssh-` authorized-key lines) and dispatches off the first 32 chars of the sanitized text (`eval` from `sanitizer`): `BEGIN`+`SSH` → `SshDecode` (SSH private key), `ssh-` → `SshDecodeCert` (authorized key/cert), any other `BEGIN` → `multipartDecodeParallel`.
+3. `multipartDecodeParallel` (generic.go:68) loops `pem.Decode` over the whole input and decodes each block concurrently (`WaitGroup.Go` + channel) via `decodePemBlock`, so concatenated/multipart PEM and noisy truststore dumps work.
+4. x509 analysis lives in x509.go (`decodePemBlock`, `certSummary`, `certOpenSSL`, `certPem`, `certRequestSummary`), SSH in ssh.go. `decodePemBlock` is also exposed as public `DecodePem` (api.go:88) for single `pem.Block` input.
 5. Output is rendered entirely through the `paepcke.de/reportstyle` `*Style` struct (StyleText/Ansi/HTML/Markdown/Plain; fields like `Style.Start`, `.End`, `.L1`, `.L3`, `.LE`, `SaniFunc`). All formatting goes through `strings.Builder` + that struct; report sections are selected by the `Report` flags (Summary, OpenSSL, PEM, PINOnly, PEMLink).
 
 The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely by environment variables: `NO_COLOR`, `HTML`, `VERBOSE` (adds openssl dump), `PEMONLY` (re-encode only), `PINONLY` (keypin only). It prefers pipe input over file args.
@@ -51,4 +52,4 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - `go vet`/`gofmt -s` are the only gates; the code style is deliberately compact (one-liner helpers at the bottom of each file).
 - Don't "fix" the DSA warnings, deprecated crypto usage, or the commented-out linters - they are intentional for parsing legacy certs.
 - The README's download link points at the tlsinfo repo (stale); releases for this project are at paepckehh/certinfo.
-- Keep the input sanitizer's 32-byte minimum and first-32-char content sniffing (generic.go:97) in mind when changing input handling; dispatch keys off substring matches on the sanitized text.
+- Keep the input sanitizer's 32-byte minimum and first-32-char content sniffing (`sanitizer`, generic.go:98) in mind when changing input handling; dispatch keys off substring matches on the sanitized text.
