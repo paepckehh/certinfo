@@ -21,7 +21,7 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.56). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- SemVer tags are `v0.1.N` (current: v0.1.58). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
 - Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`).
 
 ## Architecture
@@ -30,7 +30,7 @@ Root package `certinfo` is the library API; `cmd/certinfo` is a thin CLI on top.
 
 Data flow (input → output):
 1. `Decode(asciiBlock, *Report)` (api.go:93) is the universal entry point.
-2. `decodeBlock` (generic.go:44) sanitizes input (strips everything outside `-----` PEM markers) and dispatches: SSH private key → `SshDecode`, `ssh-` authorized key/cert → `SshDecodeCert`, anything else with `BEGIN` → `multipartDecodeParallel`.
+2. `decodeBlock` (generic.go:44) sanitizes input (strips everything outside `-----` PEM markers, but keeps `ssh-` authorized-key lines) and dispatches: SSH private key → `SshDecode`, `ssh-` authorized key/cert → `SshDecodeCert`, anything else with `BEGIN` → `multipartDecodeParallel`.
 3. `multipartDecodeParallel` (generic.go:67) loops `pem.Decode` over the whole input and decodes each block concurrently (WaitGroup + channel), so concatenated/multipart PEM and noisy truststore dumps work.
 4. x509 analysis lives in x509.go (`certSummary`, `certOpenSSL`, `certPem`), SSH in ssh.go.
 5. Output is rendered entirely through the `paepcke.de/reportstyle` `*Style` struct (StyleText/Ansi/HTML/Markdown/Plain; fields like `Style.Start`, `.End`, `.L1`, `.L3`, `.LE`, `SaniFunc`). All formatting goes through `strings.Builder` + that struct; report sections are selected by the `Report` flags (Summary, OpenSSL, PEM, PINOnly, PEMLink).

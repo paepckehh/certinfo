@@ -87,10 +87,8 @@ func isOsArgs() bool {
 
 // isEnv
 func isEnv(in string) bool {
-	if _, ok := syscall.Getenv(in); ok {
-		return true
-	}
-	return false
+	_, ok := syscall.Getenv(in)
+	return ok
 }
 
 // readFile ...

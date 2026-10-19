@@ -39,7 +39,7 @@ func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 		s.WriteString(e.L1 + "X509 Cert Valid for Host   " + e.L2 + msg + e.LE)
 	}
 	if msg := shortMsgArray(cert.EmailAddresses); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Cert Calid for eMai   " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Cert Valid for eMail  " + e.L2 + msg + e.LE)
 	}
 	if msg := shortMsgArrayIP(cert.IPAddresses); len(msg) > 0 {
 		s.WriteString(e.L1 + "X509 Cert Valid for IPs    " + e.L2 + msg + e.LE)
@@ -134,8 +134,14 @@ func decodePemBlock(block *pem.Block, r *Report) string {
 			return errString(err)
 		}
 		return PublicKey(pub, r.Style)
-	case "PRIVATE KEY":
-		priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	case "PRIVATE KEY", "RSA PRIVATE KEY", "EC PRIVATE KEY":
+		priv, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			priv, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		}
+		if err != nil {
+			priv, err = x509.ParseECPrivateKey(block.Bytes)
+		}
 		if err != nil {
 			return errString(err)
 		}
@@ -247,6 +253,8 @@ func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
 	if h > 72 || h < -72 {
 		days := int(t.Hours() / 24)
 		tss = ftoa64(math.Abs(float64(days))) + _days
+	} else {
+		tss = ftoa64(math.Abs(h)) + _hours
 	}
 	if t > 0 {
 		result = e.Valid + _forthenext + tss + _closebracket

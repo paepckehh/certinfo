@@ -2,13 +2,13 @@
 package certinfo
 
 import (
+	"crypto"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
-	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -41,7 +41,7 @@ func ReportAsAnsi(asciiBlock string) string {
 
 // ReportAsMarkdown
 // In : Parse any mixed ascii input.
-// Out: Report any decodeable certificate details as Markdown Code and a clean re-encoded sanitized pem as post URL.
+// Out: Report any decodeable certificate details as Markdown Code.
 func ReportAsMarkdown(asciiBlock string) string {
 	return Decode(asciiBlock, &Report{
 		Summary: true,
@@ -51,7 +51,7 @@ func ReportAsMarkdown(asciiBlock string) string {
 
 // ReportAsHTML
 // In : Parse any mixed ascii input.
-// Out: Report any decodeable certificate details as HTML Code and a clean re-encoded sanitized pem as post URL.
+// Out: Report any decodeable certificate details as HTML Code.
 func ReportAsHTML(asciiBlock string) string {
 	return Decode(asciiBlock, &Report{
 		Summary: true,
@@ -187,20 +187,26 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 		if err != nil {
 			return errString(err)
 		}
-		digest := sha256.Sum256(fmt.Appendf(nil, "%v", key)) // replace fmt via encoding/hex
-		// dbaa := getDBAA(fmt.Sprintf(string(digest[:])))
+		signer, ok := key.(crypto.Signer)
+		if !ok {
+			return errString(errors.New("unsupported ssh keytype"))
+		}
+		pub, err := ssh.NewPublicKey(signer.Public())
+		if err != nil {
+			return errString(err)
+		}
+		digest := sha256.Sum256(pub.Marshal())
 		dbaa := getDBAA(string(digest[:]))
 		block, _ := pem.Decode([]byte(asciiBlock))
 		keytype := parseRawPrivateKey(block)
-		return SshDecodePk(keytype, dbaa, e)
+		return SshDecodePk(keytype, ssh.FingerprintSHA256(pub), dbaa, e)
 	}
 	return errString(errors.New("unsupported ssh keytype"))
 }
 
 // SshDecodeCert decodes an ssh certificate
 func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []byte, e *reportstyle.Style) string {
-	k := strings.Split(string(ssh.MarshalAuthorizedKey(key)), " ")
-	digest := sha256.Sum256([]byte(k[1])) // todo: fix key decoding
+	digest := sha256.Sum256(key.Marshal())
 	dbaa := getDBAA(string(digest[:]))
 	if e.SaniFunc != nil {
 		dbaa = e.PS + e.SaniFunc(dbaa) + e.PE
@@ -210,21 +216,21 @@ func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []b
 	s.WriteString(e.L1 + "SSH Options                " + e.L2 + strings.Join(options, ", ") + e.LE)
 	s.WriteString(e.L1 + "SSH Other                  " + e.L2 + string(rest) + e.LE)
 	s.WriteString(e.L1 + "SSH Comment                " + e.L2 + comment + e.LE)
-	s.WriteString(e.L1 + "SSH Key Sig Algo           " + e.L2 + k[0][4:] + e.LE)
-	s.WriteString(e.L1 + "SSH Key Finger Print       " + e.L2 + k[1] + e.LE)
+	s.WriteString(e.L1 + "SSH Key Sig Algo           " + e.L2 + strings.TrimPrefix(key.Type(), "ssh-") + e.LE)
+	s.WriteString(e.L1 + "SSH Key Finger Print       " + e.L2 + ssh.FingerprintSHA256(key) + e.LE)
 	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + e.LE)
 	return s.String()
 }
 
-// SshDecodePk decocdes ssh key for <any> keytype
-func SshDecodePk(keytype, dbaa string, e *reportstyle.Style) string {
+// SshDecodePk decodes ssh key for <any> keytype
+func SshDecodePk(keytype, fingerprint, dbaa string, e *reportstyle.Style) string {
 	if e.SaniFunc != nil {
 		dbaa = e.PS + e.SaniFunc(dbaa) + e.PE
 	}
 	var s strings.Builder
 	s.WriteString(e.L1 + "SSH Private Key" + e.LE)
 	s.WriteString(e.L1 + "SSH Key Type               " + e.L2 + keytype + e.LE)
-	s.WriteString(e.L2 + "SSH Key Fingerprint        " + e.L2 + e.LE)
+	s.WriteString(e.L1 + "SSH Key Fingerprint        " + e.L2 + fingerprint + e.LE)
 	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + e.LE)
 	return s.String()
 }

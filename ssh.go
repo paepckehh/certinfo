@@ -33,16 +33,24 @@ func parseRawPrivateKey(in *pem.Block) string {
 }
 
 // getKey ...
-func getKey(pub any) string {
-	switch pub := pub.(type) {
+func getKey(k any) string {
+	switch k := k.(type) {
 	case *rsa.PublicKey:
-		return "RSA Public Key [" + strconv.Itoa(pub.Size()) + "]"
+		return "RSA Public Key [" + strconv.Itoa(k.N.BitLen()) + "]"
+	case *rsa.PrivateKey:
+		return "RSA Private Key [" + strconv.Itoa(k.N.BitLen()) + "]"
 	case *dsa.PublicKey:
 		return "DSA Public Key"
+	case *dsa.PrivateKey:
+		return "DSA Private Key"
 	case *ecdsa.PublicKey:
 		return "ECDSA Public Key"
+	case *ecdsa.PrivateKey:
+		return "ECDSA Private Key"
 	case ed25519.PublicKey:
-		return "Ed255519 Public Key"
+		return "Ed25519 Public Key"
+	case ed25519.PrivateKey:
+		return "Ed25519 Private Key"
 	}
 	return errString(errors.New("unsupported keytype"))
 }
@@ -58,8 +66,8 @@ type dbapo struct{ Y, X int }
 func getDBAA(in string) (out string) {
 	const sep = "+-----------------+\n"
 	var bp []string
-	for _, byte := range []byte(in) {
-		bb := fmt.Sprintf("%08b", byte)
+	for _, b := range []byte(in) {
+		bb := fmt.Sprintf("%08b", b)
 		bp = append(bp, bb[6:8], bb[4:6], bb[2:4], bb[0:2])
 	}
 	p := dbapo{4, 8}

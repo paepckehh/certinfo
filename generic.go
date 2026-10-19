@@ -32,6 +32,7 @@ const (
 	_openbracket  = "["
 	_closebracket = "]"
 	_marker       = "-----"
+	_sshkey       = "ssh-"
 	_empty        = ""
 	_space        = " "
 )
@@ -109,6 +110,8 @@ func sanitizer(in string) (full, cut string, err error) {
 		case strings.HasPrefix(line, _marker):
 			s.WriteString(line + _linefeed)
 			isCert = true
+		case strings.HasPrefix(line, _sshkey):
+			s.WriteString(line + _linefeed)
 		}
 	}
 	full = s.String()
@@ -124,13 +127,7 @@ func sanitizer(in string) (full, cut string, err error) {
 //
 
 // errString ...
-func errString(err error) string {
-	var s strings.Builder
-	s.WriteString(_app)
-	s.WriteString(_space)
-	s.WriteString(err.Error())
-	return s.String()
-}
+func errString(err error) string { return _app + _space + err.Error() }
 
 // short ...
 func short(in string) string {
@@ -142,16 +139,7 @@ func short(in string) string {
 
 // shortMsg ...
 func shortMsg(in string) string {
-	var s strings.Builder
-	s.WriteString(_openbracket)
-	if len(in) > 80 {
-		s.WriteString(in[:80])
-	} else {
-		s.WriteString(in)
-	}
-	s.WriteString(_closebracket)
-	s.WriteString(_space)
-	return s.String()
+	return _openbracket + short(in) + _closebracket + _space
 }
 
 // shortMsgArray ...
@@ -180,7 +168,7 @@ func shortMsgArrayIP(in []net.IP) string {
 
 // shortMsgArrayURL ...
 func shortMsgArrayURL(in []*url.URL) string {
-	if len(in) > 0 {
+	if len(in) < 1 {
 		return _empty
 	}
 	var s strings.Builder
