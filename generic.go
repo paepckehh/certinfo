@@ -130,12 +130,7 @@ func sanitizer(in string) (full, cut string, err error) {
 func errString(err error) string { return _app + _space + err.Error() }
 
 // short ...
-func short(in string) string {
-	if len(in) > 80 {
-		return in[:80]
-	}
-	return in
-}
+func short(in string) string { return in[:min(len(in), 80)] }
 
 // shortMsg ...
 func shortMsg(in string) string {

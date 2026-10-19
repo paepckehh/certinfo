@@ -4,7 +4,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"syscall"
 
 	"paepcke.de/certinfo"
 	"paepcke.de/reportstyle"
@@ -48,8 +47,8 @@ func main() {
 	case isPipe():
 		out(certinfo.Decode(getPipe(), report))
 	case isOsArgs():
-		for i := 1; i < len(os.Args); i++ {
-			out(certinfo.Decode(readFile(os.Args[i]), report))
+		for _, arg := range os.Args[1:] {
+			out(certinfo.Decode(readFile(arg), report))
 		}
 	default:
 		log.Fatal(_app + _err + "no pipe or input parameter found, example: certinfo file.txt")
@@ -86,10 +85,7 @@ func isOsArgs() bool {
 }
 
 // isEnv
-func isEnv(in string) bool {
-	_, ok := syscall.Getenv(in)
-	return ok
-}
+func isEnv(in string) bool { return os.Getenv(in) != "" }
 
 // readFile ...
 func readFile(filename string) string {

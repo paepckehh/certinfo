@@ -107,7 +107,7 @@ func getDBAA(in string) (out string) {
 	for _, ro := range r {
 		var l []byte
 		for _, co := range ro {
-			var c byte = '|'
+			c := byte('|')
 			switch {
 			case co == 1000:
 				c = 'S'
