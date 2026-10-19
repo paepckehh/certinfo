@@ -1,4 +1,13 @@
-# OVERVIEW
+<div align="center">
+
+# 🔐 certinfo
+
+**One tool. Every certificate. Zero flags.**
+
+Decode, analyze, and sanity-check x.509 certificates, CSRs, and SSH keys —
+from *any* mixed ASCII input: PEM blocks, openssl dumps, concatenated trust
+stores, or a plain pipe.
+
 [![Go Reference](https://pkg.go.dev/badge/paepcke.de/certinfo.svg)](https://pkg.go.dev/paepcke.de/certinfo)
 [![Go Report Card](https://goreportcard.com/badge/paepcke.de/certinfo)](https://goreportcard.com/report/paepcke.de/certinfo)
 [![Go Build](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml/badge.svg)](https://github.com/paepckehh/certinfo/actions/workflows/golang.yml)
@@ -6,124 +15,163 @@
 [![SemVer](https://img.shields.io/github/v/release/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/releases/latest)
 <br>[![built with nix](https://builtwithnix.org/badge.svg)](https://search.nixos.org/packages?channel=unstable&show=certinfo-go&from=0&size=50&sort=relevance&type=packages&query=certinfo-go)
 
-[paepcke.de/certinfo](https://paepcke.de/certinfo/)
+`go run paepcke.de/certinfo/cmd/certinfo@latest`
 
--   Tired of guess all the cmd switches for [openssl|certutil|...] to decode certificates ?
--   100% pure go, minimal imports, use as app or api (see api.go), compatible with tlsinfo, dnsinfo
+</div>
 
-# ⚡️HOW TO RUN VIA GO
-```
-go run paepcke.de/certinfo/cmd/certinfo@latest
-```
+---
 
-# ⚡️HOW TO INSTALL VIA GO
-```
+## 💡 Why
+
+Tired of guessing the right combination of `openssl x509 -text -noout -in ...`
+incantations, juggling `certutil`, or squinting at raw PEM dumps?
+
+`certinfo` just **works**: point it at *anything* — a single cert, a messy
+concatenated truststore, an openssl debug dump, an SSH authorized_keys file —
+and it figures out what it is, decodes everything it finds, and prints a clean,
+grep-able, colorized report.
+
+- ✨ **Zero flags, zero config** — behavior is controlled by a handful of env vars
+- 🧹 **Eat anything** — mixed, multipart, noisy, or concatenated PEM? All decoded, in parallel
+- 🔑 **Full key coverage** — x.509 certs, CSRs, SSH keys & certificates, public/private keys
+- 🧠 **Smart analysis** — validity windows, CA/self-signed state, key usage, path length, chain trust via system store, keypins
+- 🎨 **5 output styles** — ANSI color console, plain text, Markdown, HTML, clean re-encoded PEM
+- 🪶 **100% pure Go** — `CGO_ENABLED=0`, tiny dependency tree, static binaries everywhere
+- 🔌 **App *and* library** — clean Go API ([api.go](https://pkg.go.dev/paepcke.de/certinfo))
+- 🐧 **Grep-friendly** — stable, aligned, machine-parseable output (`NO_COLOR=true`)
+- 👯 **Sibling projects** — same look & feel as [`tlsinfo`](https://paepcke.de/tlsinfo/) and [`dnsinfo`](https://paepcke.de/dnsinfo/)
+
+## 🚀 Install
+
+**Go** (any platform with a Go toolchain):
+
+```shell
 go install paepcke.de/certinfo/cmd/certinfo@latest
 ```
 
-# ⚡️PRE-BUILD BINARIES (DOWNLOAD)
-[https://github.com/paepckehh/tlsinfo/releases](https://github.com/paepckehh/tlsinfo/releases)
+**No toolchain? Run it straight away:**
 
-# ⚡️HOW TO RUN ON NIXOS
+```shell
+go run paepcke.de/certinfo/cmd/certinfo@latest cert.pem
 ```
+
+**Pre-built binaries** (linux/freebsd/darwin/windows, amd64+arm64):
+
+→ [github.com/paepckehh/certinfo/releases/latest](https://github.com/paepckehh/certinfo/releases/latest)
+
+**NixOS / nix:**
+
+```shell
 nix-shell -p certinfo-go
 ```
 
-# ⚡️HOW TO INSTALL ON NIXOS
-```
-environment.systemPackages = [
-  pkgs.certinfo-go
-];
+```nix
+environment.systemPackages = [ pkgs.certinfo-go ];
 ```
 
-# ⚡️SHOWTIME
+## 🎬 Showtime
 
-## Summary of all certificates (multipart-pem-decode)
+Decode the whole system trust store in one go:
 
-``` Shell
-certinfo cert.pem
-X509 Cert Subject           : [CN=ISRG Root X1,O=Internet Security Research Group,C=US] 
+```shell
+cat /etc/ssl/* | certinfo
+```
+
+```text
+X509 Cert Subject           : [CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 X509 Cert Status            : [VALID] [for the next 4554 days]
-X509 Cert Signature Algo    : [VALID] [SHA256-RSA] 
+X509 Cert Signature Algo    : [VALID] [SHA256-RSA]
 X509 Cert Public Key        : [VALID] [RSA] [4096] [e:65537]
-X509 Cert KeyPin [base64]   : [C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=] 
-X509 Cert Key Usage         : [CRITICAL] [Certificate Signing] [CRL Signing] 
+X509 Cert KeyPin [base64]   : [C5+lpZ7tcVwmwQIMcRtPbsQtWLABXhQzejna0wHFr8M=]
+X509 Cert Key Usage         : [CRITICAL] [Certificate Signing] [CRL Signing]
 X509 CA Authority           : [YES]
 X509 CA SelfSigned          : [VALID] [RootCA]
 X509 CA Allows SubCAs       : [YES] [ALERT] [PathLen:NotDefined]
-X509 Issuer Signature By    : [CN=ISRG Root X1,O=Internet Security Research Group,C=US] 
+X509 Issuer Signature By    : [CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 X509 Issuer Signature State : [VALID] [trusted via system trust store]
 ```
 
-## Need more details (incl. openssl-compatible-dump) ?
+One cert file? Same command. Multiple files? Just list them. Pipe preferred.
 
-``` Shell
-VERBOSE=true certinfo certs.txt
-[...]
+## 🎛 Modes (env vars, not flags)
+
+| Env var | What it does |
+| :--- | :--- |
+| *(none)* | Colorized summary report (ANSI) |
+| `NO_COLOR=true` | Plain ASCII report — perfect for `grep` / piping |
+| `VERBOSE=true` | Add the full openssl-compatible dump |
+| `PEMONLY=true` | Clean re-encode only: sanitize & normalize to canonical PEM |
+| `PINONLY=true` | Print just the base64 keypin (e.g. for HPKP pinning) |
+| `HTML=true` | Full HTML report |
+
+```shell
+VERBOSE=true certinfo certs.txt     # deep-dive incl. openssl-style dump
+NO_COLOR=true certinfo certs.txt | grep KeyPin
+PINONLY=true certinfo certs.txt     # pins only
+PEMONLY=true cat /etc/ssl/* | certinfo > truststore-clean.pem
+HTML=true certinfo certs.txt > report.html
 ```
 
-## Need to parse the output?
+## 📦 Use it as a library
 
-``` Shell
-NO_COLOR=true certinfo certs.txt | grep ... 
-[...]
+The CLI is a thin wrapper — the real logic is a clean, dependency-light Go API:
+
+```go
+package main
+
+import (
+    "fmt"
+    "paepcke.de/certinfo"
+)
+
+func main() {
+    // one-liner: decode any mixed ASCII input to a text report
+    fmt.Println(certinfo.ReportAsText(string(pemBytes)))
+
+    // or roll your own report
+    report := certinfo.Decode(input, &certinfo.Report{
+        Summary: true,
+        Style:   reportstyle.StyleText(), // or StyleAnsi/HTML/Markdown
+    })
+    fmt.Print(report)}
 ```
 
-## Need only the keypin?
+Highlights of the public API ([godoc](https://pkg.go.dev/paepcke.de/certinfo)):
 
-``` Shell
-PINONLY=true certinfo certs.txt
-[...]
-```
+- `Decode(asciiBlock, *Report)` — universal entry point for any mixed input
+- `ReportAsText` / `ReportAsAnsi` / `ReportAsMarkdown` / `ReportAsHTML` — ready-made one-liners
+- `SanitizePEM(asciiBlock)` — truststore sanitizer / PEM re-encoder
+- `KeyPinBase64` / `KeyPinRaw` — keypins for any `*x509.Certificate`
+- `Cert`, `CertStore`, `CertStores`, `CertRequest` — cert / CSR analysis
+- `SshDecode`, `SshDecodeCert`, `PublicKey`, `PrivateKey` — key material analysis
 
-## Need to review your unix system trust store?
+## 🧭 Roadmap
 
-``` Shell
-cat /etc/ssl/* | certinfo 
-[...]
-```
+- [ ] Optional SCT log verification (online/leaky mode)
 
-## Need to clean re-encode, sanitize your truststore in one file?
+## 📚 Docs
 
-``` Shell
-PEMONLY=true cat /etc/ssl/* | certinfo > truststore.pem
-[..]
-```
+- API reference: [pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
+- Project home: [paepcke.de/certinfo](https://paepcke.de/certinfo/)
+- Releases: [github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
 
-## PlainText, ColorAnsi Console, and HTML output.
-``` Shell
-HTML=true certinfo certs.txt
-[...]
-```
+## 🤝 Contributing
 
-# TODO:
+Yes, please! PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-[] optional SCT log verification (online/leaky)
+## 🛡 License
 
-# DOCS
+[BSD 3-Clause License](LICENSE) — see [LICENSE](https://github.com/paepckehh/certinfo/blob/master/LICENSE) for details.
 
-[pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
-
-# 🛡 License
-
-[![License](https://img.shields.io/github/license/paepckehh/certinfo)](https://github.com/paepckehh/certinfo/blob/master/LICENSE)
-
-This project is licensed under the terms of the `BSD 3-Clause License` license. See [LICENSE](https://github.com/paepckehh/certinfo/blob/master/LICENSE) for more details.
-
-# 📃 Citation
+## 📃 Citation
 
 ```bibtex
 @misc{certinfo,
   author = {Michael Paepcke},
-  title = {Tool to analyze and troubleshoot x.509 & ssh certificates, encoded keys, ... (app/lib/api)},
+  title = {certinfo: tool to analyze and troubleshoot x.509 & ssh certificates, encoded keys, ... (app/lib/api)},
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
   howpublished = {\url{https://paepcke.de/certinfo}}
 }
 ```
-
-# CONTRIBUTION
-
-Yes, Please! PRs Welcome! 
-

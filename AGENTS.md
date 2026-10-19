@@ -21,7 +21,7 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.59). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- SemVer tags are `v0.1.N` (current: v0.1.61). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
 - Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`).
 - `go.mod` requires **Go 1.27.2** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
 
@@ -51,5 +51,5 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - The whole tree emits **nix LSP diagnostics** in this workspace (files parsed as Nix). Ignore them; they are false positives for Go/Makefile/YAML/markdown.
 - `go vet`/`gofmt -s` are the only gates; the code style is deliberately compact (one-liner helpers at the bottom of each file).
 - Don't "fix" the DSA warnings, deprecated crypto usage, or the commented-out linters - they are intentional for parsing legacy certs.
-- The README's download link points at the tlsinfo repo (stale); releases for this project are at paepckehh/certinfo.
+- The README is a modern GitHub-style repo README (centered hero + badges, feature list, env-var mode table, library example, roadmap). Keep its install/release links pointing at paepckehh/certinfo, never the tlsinfo repo.
 - Keep the input sanitizer's 32-byte minimum and first-32-char content sniffing (`sanitizer`, generic.go:98) in mind when changing input handling; dispatch keys off substring matches on the sanitized text.
