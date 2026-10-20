@@ -32,22 +32,22 @@ import (
 // certSummary ...
 func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 	var s strings.Builder
-	s.WriteString(e.L1 + "X509 Cert Subject          " + e.L2 + shortMsg(cert.Subject.String()) + e.LE)
+	s.WriteString(e.L1 + "X509 Cert Subject          " + e.L2 + sani(e, shortMsg(cert.Subject.String())) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert Status           " + e.L2 + validFor(cert, e) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert Signature Algo   " + e.L2 + sigAlgo(cert.SignatureAlgorithm.String(), e) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert Public Key       " + e.L2 + certPubKey(cert, e) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert KeyPin [base64]  " + e.L2 + shortMsg(KeyPinBase64(cert)) + e.LE)
 	if msg := shortMsgArray(cert.DNSNames); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Cert Valid for Host   " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Cert Valid for Host   " + e.L2 + sani(e, msg) + e.LE)
 	}
 	if msg := shortMsgArray(cert.EmailAddresses); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Cert Valid for eMail  " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Cert Valid for eMail  " + e.L2 + sani(e, msg) + e.LE)
 	}
 	if msg := shortMsgArrayIP(cert.IPAddresses); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Cert Valid for IPs    " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Cert Valid for IPs    " + e.L2 + sani(e, msg) + e.LE)
 	}
 	if msg := shortMsgArrayURL(cert.URIs); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Cert Valid for URLs   " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Cert Valid for URLs   " + e.L2 + sani(e, msg) + e.LE)
 	}
 	if msg := keyUsage(cert, e); len(msg) > 0 {
 		s.WriteString(e.L1 + "X509 Cert Key Usage        " + e.L2 + msg + e.LE)
@@ -65,27 +65,33 @@ func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 		}
 		s.WriteString(e.L1 + "X509 CA Allows SubCAs      " + e.L2 + subCA(cert, e) + e.LE)
 	}
-	s.WriteString(e.L1 + "X509 Issuer Signature By   " + e.L2 + shortMsg(cert.Issuer.String()) + e.LE)
+	s.WriteString(e.L1 + "X509 Issuer Signature By   " + e.L2 + sani(e, shortMsg(cert.Issuer.String())) + e.LE)
 	s.WriteString(e.L1 + "X509 Issuer Signature State" + e.L2 + signatureState(cert, e) + e.LE)
 	if msg := shortMsgArray(cert.IssuingCertificateURL); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Issuer URL            " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Issuer URL            " + e.L2 + sani(e, msg) + e.LE)
 	}
 	if msg := shortMsgArray(cert.OCSPServer); len(msg) > 0 {
-		s.WriteString(e.L1 + "X509 Issuer OCSP           " + e.L2 + msg + e.LE)
+		s.WriteString(e.L1 + "X509 Issuer OCSP           " + e.L2 + sani(e, msg) + e.LE)
 	}
 	return s.String()
 }
 
 // certOpenSSL ...
 func certOpenSSL(cert *x509.Certificate, e *reportstyle.Style) string {
-	ossl := x509UT.CertificateToString(cert2CT(cert))
+	var s strings.Builder
+	s.WriteString(e.L1 + "X509 OpenSSL compatible X509 Certificate Decoder Report" + e.L3)
+	ct := cert2CT(cert)
+	if ct == nil {
+		s.WriteString(e.Fail + _space + shortMsg("legacy decoder was not able to re-parse this certificate"))
+		s.WriteString(e.LE)
+		return s.String()
+	}
+	ossl := x509UT.CertificateToString(ct)
 	if e.SaniFunc != nil {
 		ossl = e.PS + e.SaniFunc(ossl) + e.PE
 	}
-	var s strings.Builder
-	s.WriteString(e.L1 + "X509 OpenSSL compatible X509 Certificate Decoder Report" + e.L3)
 	s.WriteString(ossl)
-	s.WriteString(e.LE)
+	s.WriteString(lineEnd(e))
 	return s.String()
 }
 
@@ -127,7 +133,7 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 			return errString(err)
 		}
 		return CertRequest(certRequest, r.Style)
-	case "CERTIFICATE", "TRUSTED CERTIFICATE":
+	case "CERTIFICATE", "TRUSTED CERTIFICATE", "X509 CERTIFICATE":
 		cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil && block.Type == "TRUSTED CERTIFICATE" {
 			// openssl 'TRUSTED CERTIFICATE' appends its trust/reject structure to the DER cert
@@ -165,6 +171,8 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 			return errString(err)
 		}
 		return PrivateKey(priv, r.Style)
+	case "OPENSSH PRIVATE KEY":
+		return SshDecode(string(pem.EncodeToMemory(block)), block.Type, r.Style)
 	}
 	return errString(errors.New("no decoder for pem type: " + block.Type))
 }
@@ -232,7 +240,7 @@ func isSelfSigned(cert *x509.Certificate, e *reportstyle.Style) (string, bool) {
 	if cert.IsCA && cert.Issuer.String() == cert.Subject.String() {
 		selfsigned, status = e.Valid+_rootCA, true
 		if err := cert.CheckSignatureFrom(cert); err != nil {
-			selfsigned, status = e.Fail+_space+shortMsg(err.Error()), false
+			selfsigned, status = e.Fail+_space+sani(e, shortMsg(err.Error())), false
 		}
 	}
 	return selfsigned, status
@@ -273,7 +281,7 @@ func isCA(cert *x509.Certificate, e *reportstyle.Style) string {
 func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 	_, err := cert.Verify(x509.VerifyOptions{})
 	if err != nil {
-		return e.Fail + _space + shortMsg(err.Error())
+		return e.Fail + _space + sani(e, shortMsg(err.Error()))
 	}
 	return e.Valid + " [trusted via system trust store]"
 }
@@ -305,7 +313,7 @@ func duration(t time.Duration) string {
 
 // encryptedBlock ...
 func encryptedBlock(block *pem.Block) bool {
-	return strings.Contains(block.Headers["Proc-Type"], "ENCRYPTED")
+	return block.Type == "ENCRYPTED PRIVATE KEY" || strings.Contains(block.Headers["Proc-Type"], "ENCRYPTED")
 }
 
 // certRequestSummary ...

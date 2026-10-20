@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh"
+	"paepcke.de/reportstyle"
 )
 
 const (
@@ -32,6 +33,9 @@ const (
 	_openbracket  = "["
 	_closebracket = "]"
 	_marker       = "-----"
+	_pemBegin     = "-----BEGIN "
+	_bom          = "\ufeff"
+	_spanEnd      = "</span>"
 	_sshkey       = "ssh-"
 	_empty        = ""
 	_space        = " "
@@ -46,27 +50,26 @@ const (
 // decodeBlock ...
 func decodeBlock(asciiBlock string, r *Report) string {
 	var err error
-	var eval string
-	asciiBlock, eval, err = sanitizer(asciiBlock)
+	asciiBlock, err = sanitizer(asciiBlock)
 	if err != nil {
 		return "[certinfo] [sanitizer] [fail]: " + err.Error()
 	}
-	switch {
-	case strings.Contains(eval, "BEGIN") && strings.Contains(eval, "SSH"):
-		return SshDecode(asciiBlock, eval, r.Style)
-	case strings.Contains(eval, "BEGIN"):
-		return multipartDecodeParallel(asciiBlock, r)
-	}
-	return decodeAuthorizedKeys(asciiBlock, r)
+	return multipartDecodeParallel(asciiBlock, r)
 }
 
 // decodeAuthorizedKeys ...
 func decodeAuthorizedKeys(in string, r *Report) string {
+	return decodeAuthorizedKeysText(in, r, false)
+}
+
+// decodeAuthorizedKeysText decodes all authorized key lines of in, quiet keeps
+// segments without any decodable key from turning into an error report
+func decodeAuthorizedKeysText(in string, r *Report, quiet bool) string {
 	var s strings.Builder
 	for {
 		key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(in))
 		if err != nil {
-			if s.Len() == 0 {
+			if s.Len() == 0 && !quiet {
 				return errString(err)
 			}
 			break
@@ -80,27 +83,48 @@ func decodeAuthorizedKeys(in string, r *Report) string {
 	return s.String()
 }
 
-// multipartDecodeParallel ...
+// textDecodeJob decodes the authorized key lines of one input segment
+func textDecodeJob(in string, r *Report) func() string {
+	return func() string { return decodeAuthorizedKeysText(in, r, true) }
+}
+
+// multipartDecodeParallel decodes all pem blocks and authorized key segments of
+// the sanitized input in parallel and joins the results in input order
 func multipartDecodeParallel(asciiBlock string, r *Report) string {
-	var blocks []*pem.Block
-	for rest := []byte(asciiBlock); ; {
-		var block *pem.Block
-		block, rest = pem.Decode(rest)
-		if block == nil {
+	var jobs []func() string
+	hasPem := false
+	for rest := asciiBlock; ; {
+		i := strings.Index(rest, _pemBegin)
+		if i < 0 {
+			jobs = append(jobs, textDecodeJob(rest, r))
 			break
 		}
-		blocks = append(blocks, block)
+		jobs = append(jobs, textDecodeJob(rest[:i], r))
+		block, tail := pem.Decode([]byte(rest[i:]))
+		if block == nil || len(tail) >= len(rest)-i {
+			jobs = append(jobs, textDecodeJob(rest[i:], r))
+			break
+		}
+		jobs = append(jobs, func() string { return decodePemBlock(block, r) })
+		hasPem = true
+		rest = string(tail)
 	}
-	results := make([]string, len(blocks))
+	if !hasPem {
+		return decodeAuthorizedKeys(asciiBlock, r)
+	}
+	results := make([]string, len(jobs))
 	var bg sync.WaitGroup
-	for i, block := range blocks {
+	for i, job := range jobs {
 		bg.Go(func() {
-			results[i] = decodePemBlock(block, r)
+			results[i] = job()
 		})
 	}
 	bg.Wait()
 	var s strings.Builder
 	for _, result := range results {
+		if result == _empty {
+			continue
+		}
 		s.WriteString(result)
 		if !strings.HasSuffix(result, _linefeed) {
 			s.WriteString(_linefeed)
@@ -110,13 +134,14 @@ func multipartDecodeParallel(asciiBlock string, r *Report) string {
 }
 
 // sanitizer ...
-func sanitizer(in string) (full, cut string, err error) {
+func sanitizer(in string) (full string, err error) {
 	var s strings.Builder
 	scanner := bufio.NewScanner(strings.NewReader(in))
 	scanner.Buffer(nil, _maxLine)
 	isCert := false
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+		line = strings.TrimSpace(strings.TrimPrefix(line, _bom))
 		switch {
 		case isCert:
 			s.WriteString(line + _linefeed)
@@ -131,14 +156,13 @@ func sanitizer(in string) (full, cut string, err error) {
 		}
 	}
 	if serr := scanner.Err(); serr != nil {
-		return _empty, _empty, serr
+		return _empty, serr
 	}
 	full = s.String()
 	if len(full) < 32 {
-		return _empty, _empty, errors.New("too short")
+		return _empty, errors.New("too short")
 	}
-	cut = full[:32]
-	return full, cut, nil
+	return full, nil
 }
 
 //
@@ -147,6 +171,21 @@ func sanitizer(in string) (full, cut string, err error) {
 
 // errString ...
 func errString(err error) string { return _app + _space + err.Error() }
+
+// sani escapes free form values (eg. certificate and ssh key fields) for styles
+// that need it, so that inline markup in the input cannot break the report
+func sani(e *reportstyle.Style, in string) string {
+	if e.SaniFunc != nil {
+		return e.SaniFunc(in)
+	}
+	return in
+}
+
+// lineEnd ends a multiline block, L3 already closed the value span of those
+// styles (eg. html), so the now dangling span close tag of LE is dropped
+func lineEnd(e *reportstyle.Style) string {
+	return strings.TrimPrefix(e.LE, _spanEnd)
+}
 
 // isAuthorizedKey ...
 func isAuthorizedKey(line string) bool {

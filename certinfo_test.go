@@ -535,3 +535,187 @@ func TestX25519Cert(t *testing.T) {
 		t.Fatalf("x25519 KEM certificate not reported as [ECDH] X25519: %q", short(out))
 	}
 }
+
+func TestMixedAuthorizedKeyAndCertificate(t *testing.T) {
+	pub, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := ssh.NewPublicKey(pub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := string(ssh.MarshalAuthorizedKey(key)) + testCertPem(t, "mixed.example")
+	out := Decode(in, testReport())
+	for _, want := range []string{ssh.FingerprintSHA256(key), "mixed.example"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("mixed input lost %q: %q", want, short(out))
+		}
+	}
+}
+
+func TestMixedCertificateAndOpenSSHPrivateKey(t *testing.T) {
+	_, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, err := ssh.MarshalPrivateKey(priv, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := testCertPem(t, "withkey.example") + string(pem.EncodeToMemory(block))
+	out := Decode(in, testReport())
+	for _, want := range []string{"withkey.example", "SSH Private Key", "OPENSSH PRIVATE KEY"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("mixed input lost %q: %q", want, short(out))
+		}
+	}
+	if strings.Contains(out, "no decoder") {
+		t.Fatalf("multipart input reported a decoder gap: %q", short(out))
+	}
+}
+
+func TestDecodePemOpenSSHPrivateKey(t *testing.T) {
+	_, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	block, err := ssh.MarshalPrivateKey(priv, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := DecodePem(block, testReport())
+	if !strings.Contains(out, "SSH Private Key") {
+		t.Fatalf("DecodePem did not decode an OpenSSH private key: %q", short(out))
+	}
+	if strings.Contains(out, "no decoder") {
+		t.Fatalf("DecodePem reported a decoder gap: %q", short(out))
+	}
+}
+
+func TestLegacyCertificatePEMType(t *testing.T) {
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "X509 CERTIFICATE", Bytes: testCert(t, "legacy.example").Raw}))
+	out := Decode(in, testReport())
+	if !strings.Contains(out, "legacy.example") {
+		t.Fatalf("legacy X509 CERTIFICATE pem type not decoded: %q", short(out))
+	}
+}
+
+func TestEncryptedPKCS8PrivateKey(t *testing.T) {
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "ENCRYPTED PRIVATE KEY", Bytes: []byte("not decodable without a passphrase")}))
+	out := Decode(in, testReport())
+	if !strings.Contains(out, "encrypted private key") {
+		t.Fatalf("encrypted pkcs8 key is not reported as encrypted: %q", short(out))
+	}
+}
+
+func TestBOMInput(t *testing.T) {
+	in := "\ufeff" + testCertPem(t, "bom.example")
+	out := Decode(in, testReport())
+	if !strings.Contains(out, "bom.example") {
+		t.Fatalf("certificate behind a UTF-8 BOM was dropped: %q", short(out))
+	}
+}
+
+func TestOpenSSLViewOfUnparsableCert(t *testing.T) {
+	cert := &x509.Certificate{Raw: []byte{0x30, 0x00}, NotBefore: time.Now(), NotAfter: time.Now().Add(time.Hour)}
+	out := Cert(cert, &Report{OpenSSL: true, Style: testStyle()})
+	if !strings.Contains(out, "re-parse") {
+		t.Fatalf("unparsable certificate is not reported cleanly: %q", short(out))
+	}
+}
+
+func TestHTMLReportEscapesFields(t *testing.T) {
+	cert := testCertWith(t, &x509.Certificate{
+		Subject:  pkix.Name{CommonName: "html.example"},
+		DNSNames: []string{"a<script>b.example"},
+	})
+	out := Cert(cert, &Report{Summary: true, Style: reportstyle.StyleHTML()})
+	if strings.Contains(out, "<script>") {
+		t.Fatalf("certificate field was not escaped for html output: %q", short(out))
+	}
+	if !strings.Contains(out, "&lt;script&gt;") {
+		t.Fatalf("certificate field missing from escaped html output: %q", short(out))
+	}
+
+	pub, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := ssh.NewPublicKey(pub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sshOut := SshDecodeCert(key, "cmt<script>", []string{"a<b"}, []byte("rest<script>"), reportstyle.StyleHTML())
+	if strings.Contains(sshOut, "<script>") {
+		t.Fatalf("ssh key field was not escaped for html output: %q", short(sshOut))
+	}
+}
+
+func TestHTMLSpansBalanced(t *testing.T) {
+	out := Cert(testCert(t, "html.example"), &Report{Summary: true, OpenSSL: true, Style: reportstyle.StyleHTML()})
+	if open, closed := strings.Count(out, "<span"), strings.Count(out, "</span>"); open != closed {
+		t.Fatalf("html output is not balanced: %d span open tags, %d close tags", open, closed)
+	}
+}
+
+func TestZeroValueReportDefaultsToText(t *testing.T) {
+	out := Decode(testCertPem(t, "nostyle.example"), &Report{Summary: true})
+	if strings.Contains(out, "parser crash") {
+		t.Fatalf("a report without a style must not end in a recovered panic: %q", short(out))
+	}
+	if !strings.Contains(out, "nostyle.example") {
+		t.Fatalf("a report without a style did not decode: %q", short(out))
+	}
+	if got := Decode(testCertPem(t, "nilreport.example"), nil); strings.Contains(got, "parser crash") {
+		t.Fatalf("a nil report must not end in a recovered panic: %q", short(got))
+	}
+}
+
+func TestHTMLKeyViewSpansBalanced(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey)}))
+	out := Decode(in, &Report{Style: reportstyle.StyleHTML()})
+	if !strings.Contains(out, "RSA Public Key") {
+		t.Fatalf("key view did not render: %q", short(out))
+	}
+	if open, closed := strings.Count(out, "<span"), strings.Count(out, "</span>"); open != closed {
+		t.Fatalf("html key view is not balanced: %d span open tags, %d close tags: %q", open, closed, short(out))
+	}
+}
+
+func TestMixedInputOrder(t *testing.T) {
+	var in strings.Builder
+	var want []string
+	for i := range 3 {
+		pub, _, err := ed25519.GenerateKey(rand.Reader)
+		if err != nil {
+			t.Fatal(err)
+		}
+		key, err := ssh.NewPublicKey(pub)
+		if err != nil {
+			t.Fatal(err)
+		}
+		in.WriteString(string(ssh.MarshalAuthorizedKey(key)))
+		want = append(want, ssh.FingerprintSHA256(key))
+		in.WriteString(testCertPem(t, "order"+itoa(i)+".example"))
+		want = append(want, "CN=order"+itoa(i)+".example")
+	}
+	for run := range 5 {
+		out := Decode(in.String(), testReport())
+		last := -1
+		for _, marker := range want {
+			i := strings.Index(out, marker)
+			if i < 0 {
+				t.Fatalf("run %d: %q missing from report: %q", run, marker, short(out))
+			}
+			if i < last {
+				t.Fatalf("run %d: %q out of input order", run, marker)
+			}
+			last = i
+		}
+	}
+}

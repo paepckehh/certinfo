@@ -86,12 +86,33 @@ type Report struct {
 
 // DecodePem a pem block
 func DecodePem(block *pem.Block, r *Report) string {
-	return decodePemBlock(block, r)
+	return decodePemBlock(block, report(r))
 }
 
 // Decode an ascii block
 func Decode(asciiBlock string, r *Report) string {
-	return decodeBlock(asciiBlock, r)
+	return decodeBlock(asciiBlock, report(r))
+}
+
+// report returns a usable report, an unset style defaults to plain text
+func report(r *Report) *Report {
+	if r == nil {
+		r = &Report{}
+	}
+	if r.Style == nil {
+		sane := *r
+		sane.Style = style(nil)
+		return &sane
+	}
+	return r
+}
+
+// style returns a usable style, nil defaults to plain text
+func style(e *reportstyle.Style) *reportstyle.Style {
+	if e == nil {
+		return reportstyle.StyleText()
+	}
+	return e
 }
 
 //
@@ -110,6 +131,7 @@ func KeyPinRaw(cert *x509.Certificate) string {
 
 // Cert analyzes an x509 certificate
 func Cert(cert *x509.Certificate, r *Report) string {
+	r = report(r)
 	if r.PINOnly {
 		return KeyPinBase64(cert)
 	}
@@ -149,12 +171,13 @@ func CertStores(stores [][]*x509.Certificate, r *Report) string {
 
 // CertRequest analyzses an x509 csr
 func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
+	e = style(e)
 	cr := certRequestSummary(csr, e)
 	if e.SaniFunc != nil {
 		cr = e.PS + e.SaniFunc(cr) + e.PE
 	}
 	var s strings.Builder
-	s.WriteString(e.L1 + "X509 Certificate Request" + e.L3 + cr + e.LE)
+	s.WriteString(e.L1 + "X509 Certificate Request" + e.L3 + cr + lineEnd(e))
 	return s.String()
 }
 
@@ -164,15 +187,17 @@ func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 
 // PublicKey reports an PublicKey struct
 func PublicKey(k any, e *reportstyle.Style) string {
+	e = style(e)
 	var s strings.Builder
-	s.WriteString(e.L1 + "KEY Public Key             " + e.L3 + getKey(k) + e.LE)
+	s.WriteString(e.L1 + "KEY Public Key             " + e.L3 + getKey(k) + lineEnd(e))
 	return s.String()
 }
 
 // PrivateKey reports an PrivateKey struct
 func PrivateKey(k any, e *reportstyle.Style) string {
+	e = style(e)
 	var s strings.Builder
-	s.WriteString(e.L1 + "KEY Private Key            " + e.L3 + getKey(k) + e.LE)
+	s.WriteString(e.L1 + "KEY Private Key            " + e.L3 + getKey(k) + lineEnd(e))
 	return s.String()
 }
 
@@ -182,6 +207,7 @@ func PrivateKey(k any, e *reportstyle.Style) string {
 
 // SshDecode decodes an ascii block ssh key
 func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
+	e = style(e)
 	if strings.Contains(eval, "PRIVATE") {
 		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
 		if err != nil {
@@ -206,6 +232,7 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 
 // SshDecodeCert decodes an ssh certificate
 func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []byte, e *reportstyle.Style) string {
+	e = style(e)
 	digest := sha256.Sum256(key.Marshal())
 	dbaa := getDBAA(string(digest[:]))
 	if e.SaniFunc != nil {
@@ -213,17 +240,18 @@ func SshDecodeCert(key ssh.PublicKey, comment string, options []string, rest []b
 	}
 	var s strings.Builder
 	s.WriteString(e.L1 + "SSH Certificate" + e.LE)
-	s.WriteString(e.L1 + "SSH Options                " + e.L2 + strings.Join(options, ", ") + e.LE)
-	s.WriteString(e.L1 + "SSH Other                  " + e.L2 + string(rest) + e.LE)
-	s.WriteString(e.L1 + "SSH Comment                " + e.L2 + comment + e.LE)
+	s.WriteString(e.L1 + "SSH Options                " + e.L2 + sani(e, strings.Join(options, ", ")) + e.LE)
+	s.WriteString(e.L1 + "SSH Other                  " + e.L2 + sani(e, string(rest)) + e.LE)
+	s.WriteString(e.L1 + "SSH Comment                " + e.L2 + sani(e, comment) + e.LE)
 	s.WriteString(e.L1 + "SSH Key Sig Algo           " + e.L2 + strings.TrimPrefix(key.Type(), "ssh-") + e.LE)
 	s.WriteString(e.L1 + "SSH Key Finger Print       " + e.L2 + ssh.FingerprintSHA256(key) + e.LE)
-	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + e.LE)
+	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + lineEnd(e))
 	return s.String()
 }
 
 // SshDecodePk decodes ssh key for <any> keytype
 func SshDecodePk(keytype, fingerprint, dbaa string, e *reportstyle.Style) string {
+	e = style(e)
 	if e.SaniFunc != nil {
 		dbaa = e.PS + e.SaniFunc(dbaa) + e.PE
 	}
@@ -231,6 +259,6 @@ func SshDecodePk(keytype, fingerprint, dbaa string, e *reportstyle.Style) string
 	s.WriteString(e.L1 + "SSH Private Key" + e.LE)
 	s.WriteString(e.L1 + "SSH Key Type               " + e.L2 + keytype + e.LE)
 	s.WriteString(e.L1 + "SSH Key Fingerprint        " + e.L2 + fingerprint + e.LE)
-	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + e.LE)
+	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + lineEnd(e))
 	return s.String()
 }
