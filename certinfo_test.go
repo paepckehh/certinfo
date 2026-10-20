@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
+	"crypto/mldsa"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -400,5 +401,137 @@ func TestECDHKeyPem(t *testing.T) {
 				t.Fatalf("%s key not reported as %q: %q", tc.name, tc.want, short(out))
 			}
 		})
+	}
+}
+
+func TestMLDSAKeyPem(t *testing.T) {
+	key, err := mldsa.GenerateKey(mldsa.MLDSA44())
+	if err != nil {
+		t.Skipf("mldsa unavailable: %v", err)
+	}
+	pub := key.Public()
+	pubDER, err := x509.MarshalPKIXPublicKey(pub)
+	if err != nil {
+		t.Fatal(err)
+	}
+	privDER, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		kind string
+		der  []byte
+		want string
+	}{
+		{"public", "PUBLIC KEY", pubDER, "ML-DSA-44 Public Key"},
+		{"private", "PRIVATE KEY", privDER, "ML-DSA-44 Private Key"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			in := string(pem.EncodeToMemory(&pem.Block{Type: tc.kind, Bytes: tc.der}))
+			out := Decode(in, testReport())
+			if !strings.Contains(out, tc.want) {
+				t.Fatalf("%s mldsa key pem not reported as %q: %q", tc.name, tc.want, short(out))
+			}
+			if strings.Contains(out, "unsupported keytype") {
+				t.Fatalf("%s mldsa key pem reported as unsupported: %q", tc.name, short(out))
+			}
+		})
+	}
+}
+
+func TestMLDSACert(t *testing.T) {
+	key, err := mldsa.GenerateKey(mldsa.MLDSA44())
+	if err != nil {
+		t.Skipf("mldsa unavailable: %v", err)
+	}
+	pub := key.Public()
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: "mldsa.example"},
+		DNSNames:     []string{"mldsa.example"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, pub, key)
+	if err != nil {
+		t.Skipf("mldsa certificate creation unavailable: %v", err)
+	}
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}))
+	out := Decode(in, testReport())
+	if strings.Contains(out, "[UNKNOWN]") {
+		t.Fatalf("mldsa certificate reported as unknown public key: %q", short(out))
+	}
+	for _, want := range []string{"[VALID] [ML-DSA-44]", "[ML-DSA-44]"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("mldsa certificate missing %q: %q", want, short(out))
+		}
+	}
+}
+
+func TestX25519Cert(t *testing.T) {
+	caPub, caPriv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	xkey, err := ecdh.X25519().GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(7),
+		Subject:      pkix.Name{CommonName: "x25519.example"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+	}
+	// [crypto/x509] cannot create KEM certs, so splice an X25519 SPKI into a regular cert TBS
+	base, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, caPub, caPriv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseCert, err := x509.ParseCertificate(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(string(baseCert.RawTBSCertificate), string(baseCert.RawSubjectPublicKeyInfo)) {
+		t.Fatal("SPKI is not the suffix of TBS, cannot splice")
+	}
+	spkix := struct {
+		Algo pkix.AlgorithmIdentifier
+		Bits asn1.BitString
+	}{
+		Algo: pkix.AlgorithmIdentifier{Algorithm: asn1.ObjectIdentifier{1, 3, 101, 110}},
+		Bits: asn1.BitString{Bytes: xkey.PublicKey().Bytes(), BitLength: 256},
+	}
+	spkixBytes, err := asn1.Marshal(spkix)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tbs := append([]byte{}, baseCert.RawTBSCertificate[:len(baseCert.RawTBSCertificate)-len(baseCert.RawSubjectPublicKeyInfo)]...)
+	tbs = append(tbs, spkixBytes...)
+	sig := ed25519.Sign(caPriv, tbs)
+	certDER := struct {
+		TBS     asn1.RawValue
+		SigAlgo asn1.RawValue
+		Sig     asn1.BitString
+	}{
+		asn1.RawValue{FullBytes: tbs},
+		asn1.RawValue{FullBytes: baseCert.RawSignatureAlgorithm},
+		asn1.BitString{Bytes: sig, BitLength: len(sig) * 8},
+	}
+	der, err := asn1.Marshal(certDER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := x509.ParseCertificate(der); err != nil {
+		t.Skipf("x25519 KEM certificate not parsable by stdlib: %v", err)
+	}
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}))
+	out := Decode(in, testReport())
+	if strings.Contains(out, "[UNKNOWN]") {
+		t.Fatalf("x25519 KEM certificate reported as unknown public key: %q", short(out))
+	}
+	if !strings.Contains(out, "[ECDH] X25519") {
+		t.Fatalf("x25519 KEM certificate not reported as [ECDH] X25519: %q", short(out))
 	}
 }

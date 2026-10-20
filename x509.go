@@ -3,9 +3,11 @@ package certinfo
 import (
 	//lint:ignore SA41019 we need to analyse old and broken certs as well
 	"crypto/dsa"
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
+	"crypto/mldsa"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -33,7 +35,7 @@ func certSummary(cert *x509.Certificate, e *reportstyle.Style) string {
 	s.WriteString(e.L1 + "X509 Cert Subject          " + e.L2 + shortMsg(cert.Subject.String()) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert Status           " + e.L2 + validFor(cert, e) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert Signature Algo   " + e.L2 + sigAlgo(cert.SignatureAlgorithm.String(), e) + e.LE)
-	s.WriteString(e.L1 + "X509 Cert Public Key       " + e.L2 + pubKey(cert.PublicKey, e) + e.LE)
+	s.WriteString(e.L1 + "X509 Cert Public Key       " + e.L2 + certPubKey(cert, e) + e.LE)
 	s.WriteString(e.L1 + "X509 Cert KeyPin [base64]  " + e.L2 + shortMsg(KeyPinBase64(cert)) + e.LE)
 	if msg := shortMsgArray(cert.DNSNames); len(msg) > 0 {
 		s.WriteString(e.L1 + "X509 Cert Valid for Host   " + e.L2 + msg + e.LE)
@@ -174,10 +176,21 @@ func sigAlgo(in string, e *reportstyle.Style) string {
 		return e.Fail + _space + shortMsg(in)
 	case "SHA256-RSA", "SHA384-RSA", "SHA512-RSA", "SHA256-RSAPSS", "SHA384-RSAPSS", "SHA512-RSAPSS":
 		return e.Valid + _space + shortMsg(in)
-	case "ECDSA-SHA256", "ECDSA-SHA384", "ECDSA-SHA512", "Ed25519":
+	case "ECDSA-SHA256", "ECDSA-SHA384", "ECDSA-SHA512", "Ed25519", "ML-DSA-44", "ML-DSA-65", "ML-DSA-87":
 		return e.Valid + _space + shortMsg(in)
 	}
 	return e.Fail + _unknown + shortMsg(in)
+}
+
+// certPubKey ...
+func certPubKey(cert *x509.Certificate, e *reportstyle.Style) string {
+	// [crypto/x509] cert decoder does not expose all SPKI types (eg. [X25519] KEM certs)
+	if cert.PublicKey == nil {
+		if pub, err := x509.ParsePKIXPublicKey(cert.RawSubjectPublicKeyInfo); err == nil {
+			return pubKey(pub, e)
+		}
+	}
+	return pubKey(cert.PublicKey, e)
 }
 
 // pubKey ...
@@ -199,6 +212,10 @@ func pubKey(pub any, e *reportstyle.Style) string {
 		return e.Fail + " [ECDSA] " + curve
 	case ed25519.PublicKey:
 		return e.Valid + " [Ed25519]"
+	case *ecdh.PublicKey:
+		return e.Valid + " [ECDH] " + curveName(pub.Curve())
+	case *mldsa.PublicKey:
+		return e.Valid + " [" + pub.Parameters().String() + "]"
 	}
 	return e.Fail + "[UNKNOWN]"
 }

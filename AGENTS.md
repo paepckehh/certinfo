@@ -41,7 +41,10 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 
 ## Conventions (project-specific)
 
-- `getKey` (ssh.go) maps every supported key type to a label; X25519/ECDH keys need `curveName`, since `crypto/ecdh.Curve` exposes no name or String method.
+- `getKey` (ssh.go, PEM key path) and `pubKey` (x509.go, certificate path) carry a case for every stdlib key type: RSA, DSA, ECDSA, Ed25519, ECDH (`crypto/ecdh`, labeled via `curveName`, since `ecdh.Curve` has no name/String method), ML-DSA (`crypto/mldsa`, labeled via `Parameters().String()`). A missing case makes a valid stdlib key print "unsupported keytype"/`[FAIL][UNKNOWN]` — add the case, not a fallback catch-all.
+- `certPubKey` (x509.go): the stdlib certificate parse path leaves `cert.PublicKey == nil` for SPKI types unknown to its `PublicKeyAlgorithm` enum (eg. X25519 KEM certs, RFC 8410), so the cert summary falls back to `x509.ParsePKIXPublicKey(cert.RawSubjectPublicKeyInfo)` before giving up as `[UNKNOWN]`.
+- `sigAlgo` (x509.go): modern signature algorithms (SHA2-RSA/ECDSA, Ed25519, ML-DSA-44/65/87) render as `[VALID]`, broken legacy hashes as `[FAIL]`.
+- Tests that generate ML-DSA material must skip (`t.Skipf`) when `mldsa.GenerateKey` returns errUnavailable (FIPS builds), so the suite stays green on all toolchains.
 - Minimal-dependency philosophy is a stated goal ("100% pure go, minimal imports"). Don't add new deps casually; the dep list is deliberately tiny (x/crypto, certificate-transparency-go, reportstyle).
 - Repeated literal strings are hoisted into unexported const blocks prefixed with `_` (e.g. `_linefeed`, `_expired` in generic.go:18). Follow this when adding repeated literals.
 - Output line labels are space-padded to a fixed column (e.g. `"X509 Cert Subject           "`) to keep summary tables aligned; keep padding consistent when editing labels.

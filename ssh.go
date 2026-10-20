@@ -6,6 +6,7 @@ import (
 	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/mldsa"
 	"crypto/rsa"
 	"encoding/pem"
 	"errors"
@@ -53,6 +54,10 @@ func getKey(k any) string {
 		return "ECDH Public Key [" + curveName(k.Curve()) + "]"
 	case *ecdh.PrivateKey:
 		return "ECDH Private Key [" + curveName(k.Curve()) + "]"
+	case *mldsa.PublicKey:
+		return k.Parameters().String() + " Public Key"
+	case *mldsa.PrivateKey:
+		return k.PublicKey().Parameters().String() + " Private Key"
 	}
 	return errString(errors.New("unsupported keytype"))
 }
