@@ -257,3 +257,16 @@ func TestSanitizePEMRoundTrip(t *testing.T) {
 		t.Fatalf("sanitized pem is not stable:\nfirst:  %q\nsecond: %q", once, twice)
 	}
 }
+
+func TestIndentedPemInput(t *testing.T) {
+	cert := testCertPem(t, "indented.example")
+	var in strings.Builder
+	for line := range strings.SplitSeq(strings.TrimSuffix(cert, _linefeed), _linefeed) {
+		in.WriteString("    " + line + _linefeed)
+	}
+	in.WriteString("  tls.key: |" + _linefeed)
+	out := Decode(in.String(), testReport())
+	if !strings.Contains(out, "indented.example") {
+		t.Fatalf("indented pem block was not decoded: %q", short(out))
+	}
+}

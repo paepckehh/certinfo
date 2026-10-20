@@ -99,7 +99,7 @@ func sanitizer(in string) (full, cut string, err error) {
 	scanner.Buffer(nil, _maxLine)
 	isCert := false
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := strings.TrimSpace(scanner.Text())
 		switch {
 		case isCert:
 			s.WriteString(line + _linefeed)
