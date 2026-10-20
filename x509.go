@@ -263,32 +263,27 @@ func signatureState(cert *x509.Certificate, e *reportstyle.Style) string {
 
 // validFor ...
 func validFor(cert *x509.Certificate, e *reportstyle.Style) string {
-	// result, t := e.Fail, cert.NotAfter.Sub(time.Now())
 	t := time.Until(cert.NotAfter)
-	h := t.Hours()
-	var result, tss string
-	if h > 72 || h < -72 {
-		days := int(t.Hours() / 24)
-		tss = ftoa64(math.Abs(float64(days))) + _days
-	} else {
-		tss = ftoa64(math.Abs(h)) + _hours
+	result := e.Valid + _forthenext + duration(t) + _closebracket
+	if t <= 0 {
+		result = e.Fail + _since + duration(t) + _closebracket
 	}
-	if t > 0 {
-		result = e.Valid + _forthenext + tss + _closebracket
-	} else {
-		result = e.Fail + _since + tss + _closebracket
-	}
-	// t = cert.NotBefore.Sub(time.Now())
-	t = time.Until(cert.NotBefore)
-	if t > 0 {
-		tss = ftoa64(math.Abs(float64(t.Hours()))) + _hours
-		if t.Hours() > 72 {
-			days := int(t.Hours() / 24)
-			tss = itoa(days) + _days
-		}
-		result = e.Fail + _forthenext + tss + _closebracket
+	if t = time.Until(cert.NotBefore); t > 0 {
+		result = e.Fail + _forthenext + duration(t) + _closebracket
 	}
 	return result
+}
+
+// duration ...
+func duration(t time.Duration) string {
+	switch h := math.Abs(t.Hours()); {
+	case h > 72:
+		return ftoa64(h/24) + _days
+	case h > 1:
+		return ftoa64(h) + _hours
+	default:
+		return ftoa64(math.Abs(t.Minutes())) + _minutes
+	}
 }
 
 // encryptedBlock ...

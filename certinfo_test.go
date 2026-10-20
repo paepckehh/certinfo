@@ -326,3 +326,26 @@ func TestRSAPublicKeyPem(t *testing.T) {
 		t.Fatalf("pkcs1 rsa public key was not decoded: %q", out)
 	}
 }
+
+func TestValidityFormatting(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		notBefore time.Duration
+		notAfter  time.Duration
+		want      string
+	}{
+		{"minutes left", -time.Hour, 30 * time.Minute, "[for the next 30 minutes]"},
+		{"minutes ago", -time.Hour, -30 * time.Minute, "[expired since 30 minutes]"},
+		{"hours left", -time.Hour, 10 * time.Hour, "[for the next 10 hours]"},
+		{"days left", -time.Hour, 10 * 24 * time.Hour, "[for the next 10 days]"},
+		{"not yet valid", 30 * time.Minute, 24 * time.Hour, "[for the next 30 minutes]"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cert := &x509.Certificate{NotBefore: time.Now().Add(tc.notBefore), NotAfter: time.Now().Add(tc.notAfter)}
+			got := validFor(cert, testStyle())
+			if !strings.Contains(got, tc.want) {
+				t.Fatalf("validFor() = %q, want it to contain %q", got, tc.want)
+			}
+		})
+	}
+}

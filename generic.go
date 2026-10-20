@@ -24,6 +24,7 @@ const (
 	_no           = "[NO]"
 	_days         = " days"
 	_hours        = " hours"
+	_minutes      = " minutes"
 	_pathlen      = " [PathLen:"
 	_unknown      = " [unknown] "
 	_since        = " [expired since "

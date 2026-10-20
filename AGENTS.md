@@ -55,3 +55,4 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - Don't "fix" the DSA warnings, deprecated crypto usage, or the commented-out linters - they are intentional for parsing legacy certs.
 - The README is a modern GitHub-style repo README (centered hero + badges, feature list, env-var mode table, library example, roadmap). Keep its install/release links pointing at paepckehh/certinfo, never the tlsinfo repo.
 - Keep the input sanitizer's 32-byte minimum and first-32-char content sniffing (`sanitizer`, generic.go:98) in mind when changing input handling; dispatch keys off substring matches on the sanitized text, so the authorized-key path must stay the last (default) branch.
+- Certificate validity is rendered by `duration` (x509.go): minutes below one hour, hours up to 72h, days above (rounded, not truncated), so short-lived certs never read "0 hours".
