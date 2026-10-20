@@ -119,7 +119,7 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 		return errString(errors.New("encrypted private key [pem block]"))
 	}
 	switch block.Type {
-	case "CERTIFICATE REQUEST":
+	case "CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST":
 		certRequest, err := x509.ParseCertificateRequest(block.Bytes)
 		if err != nil {
 			return errString(err)
@@ -141,6 +141,12 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 		return Cert(cert, r)
 	case "PUBLIC KEY":
 		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return errString(err)
+		}
+		return PublicKey(pub, r.Style)
+	case "RSA PUBLIC KEY":
+		pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
 			return errString(err)
 		}

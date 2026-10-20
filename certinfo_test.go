@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -291,5 +292,37 @@ func TestAuthorizedKeysMultiple(t *testing.T) {
 		if !strings.Contains(out, fingerprint) {
 			t.Fatalf("key %d of %d was not decoded: %q", i+1, len(want), short(out))
 		}
+	}
+}
+
+func TestCertificateRequestVariants(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	der, err := x509.CreateCertificateRequest(rand.Reader, &x509.CertificateRequest{Subject: pkix.Name{CommonName: "csr.example"}}, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, kind := range []string{"CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST"} {
+		t.Run(kind, func(t *testing.T) {
+			in := string(pem.EncodeToMemory(&pem.Block{Type: kind, Bytes: der}))
+			out := Decode(in, testReport())
+			if !strings.Contains(out, "X509 Certificate Request") || !strings.Contains(out, "[VALID]") {
+				t.Fatalf("%s block was not decoded: %q", kind, out)
+			}
+		})
+	}
+}
+
+func TestRSAPublicKeyPem(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in := string(pem.EncodeToMemory(&pem.Block{Type: "RSA PUBLIC KEY", Bytes: x509.MarshalPKCS1PublicKey(&key.PublicKey)}))
+	out := Decode(in, testReport())
+	if !strings.Contains(out, "RSA Public Key [2048]") {
+		t.Fatalf("pkcs1 rsa public key was not decoded: %q", out)
 	}
 }
