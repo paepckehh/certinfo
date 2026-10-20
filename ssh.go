@@ -14,9 +14,6 @@ import (
 
 // parseRawPrivateKey ...
 func parseRawPrivateKey(in *pem.Block) string {
-	if encryptedBlock(in) {
-		return "Encrypted KEY [PEM BLOCK]"
-	}
 	switch in.Type {
 	case "RSA PRIVATE KEY":
 		return "RSA PRIVATE KEY"

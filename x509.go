@@ -108,13 +108,16 @@ func cert2CT(cert *x509.Certificate) *x509CT.Certificate {
 }
 
 // decodePemBlock ...
-func decodePemBlock(block *pem.Block, r *Report) string {
+func decodePemBlock(block *pem.Block, r *Report) (result string) {
 	defer func() {
 		if err := recover(); err != nil {
 			// [ASN1|X509] Parser are a little bit trigger happy
-			out(_app + " [ASN|X509] parser crash")
+			result = _app + " [ASN|X509] parser crash"
 		}
 	}()
+	if encryptedBlock(block) {
+		return errString(errors.New("encrypted private key [pem block]"))
+	}
 	switch block.Type {
 	case "CERTIFICATE REQUEST":
 		certRequest, err := x509.ParseCertificateRequest(block.Bytes)
@@ -122,8 +125,16 @@ func decodePemBlock(block *pem.Block, r *Report) string {
 			return errString(err)
 		}
 		return CertRequest(certRequest, r.Style)
-	case "CERTIFICATE":
+	case "CERTIFICATE", "TRUSTED CERTIFICATE":
 		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil && block.Type == "TRUSTED CERTIFICATE" {
+			// openssl 'TRUSTED CERTIFICATE' appends its trust/reject structure to the DER cert
+			var certDER asn1.RawValue
+			if _, aerr := asn1.Unmarshal(block.Bytes, &certDER); aerr != nil {
+				return errString(err)
+			}
+			cert, err = x509.ParseCertificate(certDER.FullBytes)
+		}
 		if err != nil {
 			return errString(err)
 		}
@@ -180,7 +191,7 @@ func pubKey(pub any, e *reportstyle.Style) string {
 			return e.Valid + " [ECDSA] " + curve
 		}
 		return e.Fail + " [ECDSA] " + curve
-	case *ed25519.PublicKey:
+	case ed25519.PublicKey:
 		return e.Valid + " [Ed25519]"
 	}
 	return e.Fail + "[UNKNOWN]"

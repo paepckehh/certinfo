@@ -2,15 +2,14 @@ package certinfo
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/pem"
 	"errors"
 	"net"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -35,6 +34,8 @@ const (
 	_sshkey       = "ssh-"
 	_empty        = ""
 	_space        = " "
+	_shortLen     = 80
+	_maxLine      = 1 << 20
 )
 
 //
@@ -52,44 +53,41 @@ func decodeBlock(asciiBlock string, r *Report) string {
 	switch {
 	case strings.Contains(eval, "BEGIN") && strings.Contains(eval, "SSH"):
 		return SshDecode(asciiBlock, eval, r.Style)
-	case strings.Contains(eval, "ssh-"):
-		key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(asciiBlock))
-		if err != nil {
-			return errString(err)
-		}
-		return SshDecodeCert(key, comment, options, rest, r.Style)
 	case strings.Contains(eval, "BEGIN"):
 		return multipartDecodeParallel(asciiBlock, r)
 	}
-	return "[certinfo] [unable to decode] [pem:failed] [ssh:failed]"
+	key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(asciiBlock))
+	if err != nil {
+		return errString(err)
+	}
+	return SshDecodeCert(key, comment, options, rest, r.Style)
 }
 
 // multipartDecodeParallel ...
 func multipartDecodeParallel(asciiBlock string, r *Report) string {
-	var (
-		bg    sync.WaitGroup
-		dChan = make(chan string, 10)
-	)
-	block := []byte(asciiBlock)
-	go func() {
-		for len(block) > 32 {
-			pem, rest := pem.Decode(block)
-			if pem != nil {
-				bg.Go(func() {
-					dChan <- decodePemBlock(pem, r)
-				})
-			}
-			if bytes.Equal(block, rest) {
-				break
-			}
-			block = rest
+	var blocks []*pem.Block
+	for rest := []byte(asciiBlock); ; {
+		var block *pem.Block
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			break
 		}
-		bg.Wait()
-		close(dChan)
-	}()
+		blocks = append(blocks, block)
+	}
+	results := make([]string, len(blocks))
+	var bg sync.WaitGroup
+	for i, block := range blocks {
+		bg.Go(func() {
+			results[i] = decodePemBlock(block, r)
+		})
+	}
+	bg.Wait()
 	var s strings.Builder
-	for ss := range dChan {
-		s.WriteString(ss)
+	for _, result := range results {
+		s.WriteString(result)
+		if !strings.HasSuffix(result, _linefeed) {
+			s.WriteString(_linefeed)
+		}
 	}
 	return s.String()
 }
@@ -98,6 +96,7 @@ func multipartDecodeParallel(asciiBlock string, r *Report) string {
 func sanitizer(in string) (full, cut string, err error) {
 	var s strings.Builder
 	scanner := bufio.NewScanner(strings.NewReader(in))
+	scanner.Buffer(nil, _maxLine)
 	isCert := false
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -110,9 +109,12 @@ func sanitizer(in string) (full, cut string, err error) {
 		case strings.HasPrefix(line, _marker):
 			s.WriteString(line + _linefeed)
 			isCert = true
-		case strings.HasPrefix(line, _sshkey):
+		case isAuthorizedKey(line):
 			s.WriteString(line + _linefeed)
 		}
+	}
+	if serr := scanner.Err(); serr != nil {
+		return _empty, _empty, serr
 	}
 	full = s.String()
 	if len(full) < 32 {
@@ -129,8 +131,27 @@ func sanitizer(in string) (full, cut string, err error) {
 // errString ...
 func errString(err error) string { return _app + _space + err.Error() }
 
+// isAuthorizedKey ...
+func isAuthorizedKey(line string) bool {
+	if strings.HasPrefix(line, _sshkey) {
+		return true
+	}
+	_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(line))
+	return err == nil
+}
+
 // short ...
-func short(in string) string { return in[:min(len(in), 80)] }
+func short(in string) string {
+	if len(in) <= _shortLen {
+		return in
+	}
+	for i := _shortLen; i > 0; i-- {
+		if utf8.RuneStart(in[i]) {
+			return in[:i]
+		}
+	}
+	return in[:_shortLen]
+}
 
 // shortMsg ...
 func shortMsg(in string) string {
@@ -179,4 +200,3 @@ func shortMsgArrayURL(in []*url.URL) string {
 
 func itoa(in int) string       { return strconv.Itoa(in) }
 func ftoa64(in float64) string { return strconv.FormatFloat(in, 'f', 0, 64) }
-func out(msg string)           { os.Stdout.Write([]byte(msg + _linefeed)) }

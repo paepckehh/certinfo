@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"paepcke.de/certinfo"
 	"paepcke.de/reportstyle"
@@ -61,6 +62,9 @@ func main() {
 
 // out ...
 func out(msg string) {
+	if !strings.HasSuffix(msg, _linefeed) {
+		msg += _linefeed
+	}
 	_, _ = os.Stdout.Write([]byte(msg))
 }
 
