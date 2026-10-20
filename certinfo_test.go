@@ -1,6 +1,7 @@
 package certinfo
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -367,5 +368,37 @@ func TestExtendedKeyUsageMicrosoft(t *testing.T) {
 	}
 	if strings.Contains(out, "[Unknown]") {
 		t.Fatalf("known extension usage reported as unknown: %q", short(out))
+	}
+}
+
+func TestECDHKeyPem(t *testing.T) {
+	key, err := ecdh.X25519().GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pubDER, err := x509.MarshalPKIXPublicKey(key.PublicKey())
+	if err != nil {
+		t.Fatal(err)
+	}
+	privDER, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		kind string
+		der  []byte
+		want string
+	}{
+		{"public", "PUBLIC KEY", pubDER, "ECDH Public Key [X25519]"},
+		{"private", "PRIVATE KEY", privDER, "ECDH Private Key [X25519]"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			in := string(pem.EncodeToMemory(&pem.Block{Type: tc.kind, Bytes: tc.der}))
+			out := Decode(in, testReport())
+			if !strings.Contains(out, tc.want) {
+				t.Fatalf("%s key not reported as %q: %q", tc.name, tc.want, short(out))
+			}
+		})
 	}
 }

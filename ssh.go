@@ -3,6 +3,7 @@ package certinfo
 import (
 	//lint:ignore SA41019 we need to analyse old and broken certs as well
 	"crypto/dsa"
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
@@ -48,8 +49,27 @@ func getKey(k any) string {
 		return "Ed25519 Public Key"
 	case ed25519.PrivateKey:
 		return "Ed25519 Private Key"
+	case *ecdh.PublicKey:
+		return "ECDH Public Key [" + curveName(k.Curve()) + "]"
+	case *ecdh.PrivateKey:
+		return "ECDH Private Key [" + curveName(k.Curve()) + "]"
 	}
 	return errString(errors.New("unsupported keytype"))
+}
+
+// curveName ...
+func curveName(in ecdh.Curve) string {
+	switch in {
+	case ecdh.X25519():
+		return "X25519"
+	case ecdh.P256():
+		return "NIST P-256"
+	case ecdh.P384():
+		return "NIST P-384"
+	case ecdh.P521():
+		return "NIST P-521"
+	}
+	return "unknown curve"
 }
 
 //

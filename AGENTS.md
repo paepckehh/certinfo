@@ -41,6 +41,7 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 
 ## Conventions (project-specific)
 
+- `getKey` (ssh.go) maps every supported key type to a label; X25519/ECDH keys need `curveName`, since `crypto/ecdh.Curve` exposes no name or String method.
 - Minimal-dependency philosophy is a stated goal ("100% pure go, minimal imports"). Don't add new deps casually; the dep list is deliberately tiny (x/crypto, certificate-transparency-go, reportstyle).
 - Repeated literal strings are hoisted into unexported const blocks prefixed with `_` (e.g. `_linefeed`, `_expired` in generic.go:18). Follow this when adding repeated literals.
 - Output line labels are space-padded to a fixed column (e.g. `"X509 Cert Subject           "`) to keep summary tables aligned; keep padding consistent when editing labels.
