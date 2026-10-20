@@ -16,7 +16,7 @@ go run ./cmd/certinfo cmd/certinfo/example.txt   # manual run
 cat file.pem | go run ./cmd/certinfo             # pipe input works too
 ```
 
-- **Tests live in `certinfo_test.go`** (root package, stdlib `testing` only, no fixtures, no network, no host files). `make check` (gofmt -s, vet, fix, test) is the quality gate; CI (`.github/workflows/golang.yml`) does `go build ./...` + `go vet ./...` + `go test ./...` with `CGO_ENABLED=0`.
+- **Tests live in `certinfo_test.go`** (root package) and `cmd/certinfo/main_test.go` (CLI helpers), stdlib `testing` only, no fixtures, no network, no host files. `make check` (gofmt -s, vet, fix, test) is the quality gate; CI (`.github/workflows/golang.yml`) does `go build ./...` + `go vet ./...` + `go test ./...` with `CGO_ENABLED=0`.
 - Build must stay `CGO_ENABLED=0` and cross-platform (goreleaser targets linux/freebsd/darwin/windows, amd64+arm64).
 - staticcheck/golangci-lint are deliberately commented out in the Makefiles: the code intentionally uses deprecated `crypto/dsa` to parse old/broken certs (see `//lint:ignore SA41019` markers in x509.go, ssh.go).
 

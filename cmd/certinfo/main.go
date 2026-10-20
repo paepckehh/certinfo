@@ -45,7 +45,7 @@ func main() {
 		report.PINOnly = true
 	}
 	switch {
-	case isPipe():
+	case isPipe(os.Stdin):
 		out(certinfo.Decode(getPipe(), report))
 	case isOsArgs():
 		for _, arg := range os.Args[1:] {
@@ -69,9 +69,9 @@ func out(msg string) {
 }
 
 // isPipe ...
-func isPipe() bool {
-	out, _ := os.Stdin.Stat()
-	return out.Mode()&os.ModeCharDevice == 0
+func isPipe(in *os.File) bool {
+	stat, err := in.Stat()
+	return err == nil && stat.Mode()&os.ModeCharDevice == 0
 }
 
 // getPipe ...

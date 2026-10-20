@@ -10,8 +10,8 @@ deps:
 
 check: 
 	gofmt -w -s .
-	go vet .
-	go fix .
+	go vet ./...
+	go fix ./...
 	go test ./...
 	# expect some legacy crypto DSA support complains, need for analysis of bad and old legacy certs
 	# staticcheck
