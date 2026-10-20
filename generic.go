@@ -56,11 +56,27 @@ func decodeBlock(asciiBlock string, r *Report) string {
 	case strings.Contains(eval, "BEGIN"):
 		return multipartDecodeParallel(asciiBlock, r)
 	}
-	key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(asciiBlock))
-	if err != nil {
-		return errString(err)
+	return decodeAuthorizedKeys(asciiBlock, r)
+}
+
+// decodeAuthorizedKeys ...
+func decodeAuthorizedKeys(in string, r *Report) string {
+	var s strings.Builder
+	for {
+		key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(in))
+		if err != nil {
+			if s.Len() == 0 {
+				return errString(err)
+			}
+			break
+		}
+		s.WriteString(SshDecodeCert(key, comment, options, nil, r.Style))
+		if len(rest) == 0 {
+			break
+		}
+		in = string(rest)
 	}
-	return SshDecodeCert(key, comment, options, rest, r.Style)
+	return s.String()
 }
 
 // multipartDecodeParallel ...

@@ -270,3 +270,26 @@ func TestIndentedPemInput(t *testing.T) {
 		t.Fatalf("indented pem block was not decoded: %q", short(out))
 	}
 }
+
+func TestAuthorizedKeysMultiple(t *testing.T) {
+	var in strings.Builder
+	var want []string
+	for range 3 {
+		pub, _, err := ed25519.GenerateKey(rand.Reader)
+		if err != nil {
+			t.Fatal(err)
+		}
+		key, err := ssh.NewPublicKey(pub)
+		if err != nil {
+			t.Fatal(err)
+		}
+		in.WriteString(string(ssh.MarshalAuthorizedKey(key)))
+		want = append(want, ssh.FingerprintSHA256(key))
+	}
+	out := Decode(in.String(), testReport())
+	for i, fingerprint := range want {
+		if !strings.Contains(out, fingerprint) {
+			t.Fatalf("key %d of %d was not decoded: %q", i+1, len(want), short(out))
+		}
+	}
+}
