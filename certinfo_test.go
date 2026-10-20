@@ -24,19 +24,15 @@ import (
 	"paepcke.de/reportstyle"
 )
 
-func testCert(t *testing.T, cn string) *x509.Certificate {
+func testCertWith(t *testing.T, tmpl *x509.Certificate) *x509.Certificate {
 	t.Helper()
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
-	tmpl := &x509.Certificate{
-		SerialNumber: big.NewInt(1),
-		Subject:      pkix.Name{CommonName: cn},
-		DNSNames:     []string{cn},
-		NotBefore:    time.Now().Add(-time.Hour),
-		NotAfter:     time.Now().Add(time.Hour),
-	}
+	tmpl.SerialNumber = big.NewInt(1)
+	tmpl.NotBefore = time.Now().Add(-time.Hour)
+	tmpl.NotAfter = time.Now().Add(time.Hour)
 	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, pub, priv)
 	if err != nil {
 		t.Fatal(err)
@@ -46,6 +42,11 @@ func testCert(t *testing.T, cn string) *x509.Certificate {
 		t.Fatal(err)
 	}
 	return cert
+}
+
+func testCert(t *testing.T, cn string) *x509.Certificate {
+	t.Helper()
+	return testCertWith(t, &x509.Certificate{Subject: pkix.Name{CommonName: cn}, DNSNames: []string{cn}})
 }
 
 func testCertPem(t *testing.T, cn string) string {
@@ -347,5 +348,24 @@ func TestValidityFormatting(t *testing.T) {
 				t.Fatalf("validFor() = %q, want it to contain %q", got, tc.want)
 			}
 		})
+	}
+}
+
+func TestExtendedKeyUsageMicrosoft(t *testing.T) {
+	cert := testCertWith(t, &x509.Certificate{
+		Subject: pkix.Name{CommonName: "eku.example"},
+		ExtKeyUsage: []x509.ExtKeyUsage{
+			x509.ExtKeyUsageMicrosoftCommercialCodeSigning,
+			x509.ExtKeyUsageMicrosoftKernelCodeSigning,
+		},
+	})
+	out := Cert(cert, testReport())
+	for _, want := range []string{"[Microsoft commercial code signing]", "[Microsoft kernel code signing]"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("known extension usage %q not reported: %q", want, short(out))
+		}
+	}
+	if strings.Contains(out, "[Unknown]") {
+		t.Fatalf("known extension usage reported as unknown: %q", short(out))
 	}
 }

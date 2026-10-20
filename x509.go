@@ -472,6 +472,10 @@ func extKeyUsageToString(u x509.ExtKeyUsage, e *reportstyle.Style) string {
 		s.WriteString(shortMsg("Microsoft server gated cryptography"))
 	case x509.ExtKeyUsageNetscapeServerGatedCrypto:
 		s.WriteString(shortMsg("Netscape server gated cryptography"))
+	case x509.ExtKeyUsageMicrosoftCommercialCodeSigning:
+		s.WriteString(shortMsg("Microsoft commercial code signing"))
+	case x509.ExtKeyUsageMicrosoftKernelCodeSigning:
+		s.WriteString(shortMsg("Microsoft kernel code signing"))
 	case x509.ExtKeyUsageAny:
 		s.WriteString(e.Alert)
 		s.WriteString(shortMsg("Any"))

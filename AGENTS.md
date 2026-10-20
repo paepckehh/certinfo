@@ -47,6 +47,7 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - Public API functions are documented with the `// FuncName\n// In : ...\n// Out: ...` comment style (see api.go).
 - Output is meant to be grep-parseable (`NO_COLOR` mode); errors print as `[certinfo] <msg>`, not via `log` (only the CLI uses `log.Fatal`). The library never writes to stdout itself.
 - Report lines are truncated by `short` (generic.go) at `_shortLen` (80) bytes on a UTF-8 rune boundary; keep that property so `HTML`/`Markdown` output stays valid.
+- `extKeyUsageToString` (x509.go) needs an explicit case per `x509.ExtKeyUsage` constant; anything unmapped prints `[Unknown]`, so add Microsoft/Netscape variants rather than relying on a default.
 
 ## Gotchas
 
