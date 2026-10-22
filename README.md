@@ -1,5 +1,11 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/hero-light.svg">
+  <img src="docs/hero-light.svg" alt="certinfo dashboard: decode x.509 certificates, CSRs and SSH keys from any mixed input" width="100%">
+</picture>
+
 # 🔐 certinfo
 
 **One tool. Every certificate. Zero flags.**
@@ -153,6 +159,7 @@ Highlights of the public API ([godoc](https://pkg.go.dev/paepcke.de/certinfo)):
 
 - API reference: [pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
 - Project home: [paepcke.de/certinfo](https://paepcke.de/certinfo/)
+- Hero artwork: [dark](docs/hero-dark.svg) / [light](docs/hero-light.svg) - hand-built, dependency-free SVG dashboard (theme-aware `<picture>`)
 - Releases: [github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
 
 ## 🤝 Contributing

@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-label="certinfo dashboard: one tool, every certificate, zero flags">
+  <title>certinfo - one tool, every certificate, zero flags</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1020"/>
+      <stop offset="0.55" stop-color="#0d1729"/>
+      <stop offset="1" stop-color="#111f36"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0.18" cy="0.18" r="0.72">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.86" cy="0.92" r="0.62">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#5b7ba6" stroke-opacity="0.10" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0c1526" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#091120" stop-opacity="0.96"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#22d3ee" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+    <style>
+      .sans { font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="340" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="340" rx="24" fill="url(#grid)"/>
+  <rect width="1200" height="340" rx="24" fill="url(#glowA)"/>
+  <rect width="1200" height="340" rx="24" fill="url(#glowB)"/>
+  <rect x="0.5" y="0.5" width="1199" height="339" rx="23.5" fill="none" stroke="#22d3ee" stroke-opacity="0.16"/>
+  <rect x="56" y="0" width="420" height="2" fill="url(#edge)"/>
+
+  <g>
+    <path d="M88 56 L120 68 V94 C120 114 105 126 88 132 C71 126 56 114 56 94 V68 Z" fill="url(#mark)"/>
+    <rect x="77" y="86" width="22" height="17" rx="4" fill="#06202b"/>
+    <path d="M82 86 V81 A6 6 0 0 1 94 81 V86" fill="none" stroke="#06202b" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="88" cy="94" r="2.4" fill="#2dd4bf"/>
+  </g>
+
+  <text x="140" y="101" class="sans" font-size="50" font-weight="700" letter-spacing="-1.2" fill="#eef4ff">certinfo</text>
+  <text x="142" y="138" class="sans" font-size="18" fill="#93a6bf">One tool. Every certificate. Zero flags.</text>
+
+  <g class="mono" font-size="13">
+    <rect x="140" y="160" width="64" height="28" rx="14" fill="#12233b" stroke="#22d3ee" stroke-opacity="0.35"/>
+    <text x="172" y="179" text-anchor="middle" fill="#8fe8f5">x.509</text>
+    <rect x="212" y="160" width="56" height="28" rx="14" fill="#12233b" stroke="#2dd4bf" stroke-opacity="0.35"/>
+    <text x="240" y="179" text-anchor="middle" fill="#8ff0db">CSR</text>
+    <rect x="276" y="160" width="58" height="28" rx="14" fill="#12233b" stroke="#60a5fa" stroke-opacity="0.35"/>
+    <text x="305" y="179" text-anchor="middle" fill="#a8cbff">SSH</text>
+    <rect x="342" y="160" width="58" height="28" rx="14" fill="#12233b" stroke="#fbbf24" stroke-opacity="0.35"/>
+    <text x="371" y="179" text-anchor="middle" fill="#f8d78a">PEM</text>
+  </g>
+
+  <text x="140" y="238" class="mono" font-size="14" fill="#7f92ab">mixed ASCII in  -&gt;  parallel decode out</text>
+  <text x="140" y="264" class="mono" font-size="14" fill="#5f728c">grep-stable, deterministic, offline</text>
+
+  <g filter="url(#soft)">
+    <rect x="600" y="44" width="552" height="252" rx="16" fill="url(#card)" stroke="#1d3554"/>
+    <rect x="600" y="44" width="552" height="252" rx="16" fill="none" stroke="#22d3ee" stroke-opacity="0.10"/>
+    <circle cx="628" cy="70" r="5" fill="#f87171"/>
+    <circle cx="648" cy="70" r="5" fill="#fbbf24"/>
+    <circle cx="668" cy="70" r="5" fill="#34d399"/>
+    <text x="1150" y="74" class="mono" font-size="12" text-anchor="end" fill="#6d829d">certinfo report -- ansi</text>
+    <line x1="600" y1="88" x2="1152" y2="88" stroke="#1d3554"/>
+  </g>
+
+  <g class="mono" font-size="14">
+    <text x="628" y="118" fill="#7d8fa8">X509 Subject</text>
+    <text x="804" y="118" fill="#a8cbff">[CN=example.com, O=ACME]</text>
+
+    <text x="628" y="148" fill="#7d8fa8">X509 Status</text>
+    <text x="804" y="148" fill="#5eead4">[VALID]</text>
+    <text x="884" y="148" fill="#4fb4a6">[89 days left]</text>
+
+    <text x="628" y="178" fill="#7d8fa8">Signature</text>
+    <text x="804" y="178" fill="#5eead4">[VALID]</text>
+    <text x="884" y="178" fill="#4fb4a6">[Ed25519]</text>
+
+    <text x="628" y="208" fill="#7d8fa8">KeyPin</text>
+    <text x="804" y="208" fill="#8fe8f5">[C5+lpZ7tcVwmwQIMcRt...]</text>
+
+    <text x="628" y="238" fill="#7d8fa8">CA / SelfSigned</text>
+    <text x="804" y="238" fill="#f8d78a">[YES]</text>
+    <text x="884" y="238" fill="#d9b36a">[ROOT]</text>
+
+    <text x="628" y="268" fill="#7d8fa8">SSH Ed25519</text>
+    <text x="804" y="268" fill="#5eead4">[VALID]</text>
+    <text x="884" y="268" fill="#4fb4a6">[keypin aB3...]</text>
+  </g>
+</svg>
