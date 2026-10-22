@@ -52,7 +52,7 @@ func decodeBlock(asciiBlock string, r *Report) string {
 	var err error
 	asciiBlock, err = sanitizer(asciiBlock)
 	if err != nil {
-		return "[certinfo] [sanitizer] [fail]: " + err.Error()
+		return errString(errors.New("[sanitizer] [fail]: "+err.Error()), r.Style)
 	}
 	return multipartDecodeParallel(asciiBlock, r)
 }
@@ -70,7 +70,7 @@ func decodeAuthorizedKeysText(in string, r *Report, quiet bool) string {
 		key, comment, options, rest, err := ssh.ParseAuthorizedKey([]byte(in))
 		if err != nil {
 			if s.Len() == 0 && !quiet {
-				return errString(err)
+				return errString(err, r.Style)
 			}
 			break
 		}
@@ -169,8 +169,11 @@ func sanitizer(in string) (full string, err error) {
 // GENERIC OUTPUT FORMAT HELPER
 //
 
-// errString ...
-func errString(err error) string { return _app + _space + err.Error() }
+// errString renders an error as a report line, escaping it for styles that
+// need it (parser errors can echo attacker controlled input)
+func errString(err error, e *reportstyle.Style) string {
+	return _app + _space + sani(style(e), err.Error())
+}
 
 // sani escapes free form values (eg. certificate and ssh key fields) for styles
 // that need it, so that inline markup in the input cannot break the report

@@ -124,13 +124,13 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 		}
 	}()
 	if encryptedBlock(block) {
-		return errString(errors.New("encrypted private key [pem block]"))
+		return errString(errors.New("encrypted private key [pem block]"), r.Style)
 	}
 	switch block.Type {
 	case "CERTIFICATE REQUEST", "NEW CERTIFICATE REQUEST":
 		certRequest, err := x509.ParseCertificateRequest(block.Bytes)
 		if err != nil {
-			return errString(err)
+			return errString(err, r.Style)
 		}
 		return CertRequest(certRequest, r.Style)
 	case "CERTIFICATE", "TRUSTED CERTIFICATE", "X509 CERTIFICATE":
@@ -139,24 +139,24 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 			// openssl 'TRUSTED CERTIFICATE' appends its trust/reject structure to the DER cert
 			var certDER asn1.RawValue
 			if _, aerr := asn1.Unmarshal(block.Bytes, &certDER); aerr != nil {
-				return errString(err)
+				return errString(err, r.Style)
 			}
 			cert, err = x509.ParseCertificate(certDER.FullBytes)
 		}
 		if err != nil {
-			return errString(err)
+			return errString(err, r.Style)
 		}
 		return Cert(cert, r)
 	case "PUBLIC KEY":
 		pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 		if err != nil {
-			return errString(err)
+			return errString(err, r.Style)
 		}
 		return PublicKey(pub, r.Style)
 	case "RSA PUBLIC KEY":
 		pub, err := x509.ParsePKCS1PublicKey(block.Bytes)
 		if err != nil {
-			return errString(err)
+			return errString(err, r.Style)
 		}
 		return PublicKey(pub, r.Style)
 	case "PRIVATE KEY", "RSA PRIVATE KEY", "EC PRIVATE KEY":
@@ -168,13 +168,13 @@ func decodePemBlock(block *pem.Block, r *Report) (result string) {
 			priv, err = x509.ParseECPrivateKey(block.Bytes)
 		}
 		if err != nil {
-			return errString(err)
+			return errString(err, r.Style)
 		}
 		return PrivateKey(priv, r.Style)
 	case "OPENSSH PRIVATE KEY":
 		return SshDecode(string(pem.EncodeToMemory(block)), block.Type, r.Style)
 	}
-	return errString(errors.New("no decoder for pem type: " + block.Type))
+	return errString(errors.New("no decoder for pem type: "+block.Type), r.Style)
 }
 
 // sigAlgo ...
@@ -236,14 +236,13 @@ func keyPin(cert *x509.Certificate) []byte {
 
 // isSelfSigned ...
 func isSelfSigned(cert *x509.Certificate, e *reportstyle.Style) (string, bool) {
-	selfsigned, status := _no, false
-	if cert.IsCA && cert.Issuer.String() == cert.Subject.String() {
-		selfsigned, status = e.Valid+_rootCA, true
-		if err := cert.CheckSignatureFrom(cert); err != nil {
-			selfsigned, status = e.Fail+_space+sani(e, shortMsg(err.Error())), false
-		}
+	if !cert.IsCA || cert.Issuer.String() != cert.Subject.String() {
+		return _no, false
 	}
-	return selfsigned, status
+	if err := cert.CheckSignatureFrom(cert); err != nil {
+		return e.Fail + _space + sani(e, shortMsg(err.Error())), true
+	}
+	return e.Valid + _rootCA, true
 }
 
 // subCA ..
@@ -318,9 +317,8 @@ func encryptedBlock(block *pem.Block) bool {
 
 // certRequestSummary ...
 func certRequestSummary(csr *x509.CertificateRequest, e *reportstyle.Style) string {
-	err := csr.CheckSignature()
-	if err != nil {
-		return e.Fail + _space + err.Error()
+	if err := csr.CheckSignature(); err != nil {
+		return e.Fail + _space + sani(e, err.Error())
 	}
 	return e.Valid
 }

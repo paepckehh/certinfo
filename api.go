@@ -172,12 +172,8 @@ func CertStores(stores [][]*x509.Certificate, r *Report) string {
 // CertRequest analyzses an x509 csr
 func CertRequest(csr *x509.CertificateRequest, e *reportstyle.Style) string {
 	e = style(e)
-	cr := certRequestSummary(csr, e)
-	if e.SaniFunc != nil {
-		cr = e.PS + e.SaniFunc(cr) + e.PE
-	}
 	var s strings.Builder
-	s.WriteString(e.L1 + "X509 Certificate Request" + e.L3 + cr + lineEnd(e))
+	s.WriteString(e.L1 + "X509 Certificate Request" + e.L3 + certRequestSummary(csr, e) + lineEnd(e))
 	return s.String()
 }
 
@@ -211,15 +207,15 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 	if strings.Contains(eval, "PRIVATE") {
 		key, err := ssh.ParseRawPrivateKey([]byte(asciiBlock))
 		if err != nil {
-			return errString(err)
+			return errString(err, e)
 		}
 		signer, ok := key.(crypto.Signer)
 		if !ok {
-			return errString(errors.New("unsupported ssh keytype"))
+			return errString(errors.New("unsupported ssh keytype"), e)
 		}
 		pub, err := ssh.NewPublicKey(signer.Public())
 		if err != nil {
-			return errString(err)
+			return errString(err, e)
 		}
 		digest := sha256.Sum256(pub.Marshal())
 		dbaa := getDBAA(string(digest[:]))
@@ -227,7 +223,7 @@ func SshDecode(asciiBlock, eval string, e *reportstyle.Style) string {
 		keytype := parseRawPrivateKey(block)
 		return SshDecodePk(keytype, ssh.FingerprintSHA256(pub), dbaa, e)
 	}
-	return errString(errors.New("unsupported ssh keytype"))
+	return errString(errors.New("unsupported ssh keytype"), e)
 }
 
 // SshDecodeCert decodes an ssh certificate
@@ -257,8 +253,8 @@ func SshDecodePk(keytype, fingerprint, dbaa string, e *reportstyle.Style) string
 	}
 	var s strings.Builder
 	s.WriteString(e.L1 + "SSH Private Key" + e.LE)
-	s.WriteString(e.L1 + "SSH Key Type               " + e.L2 + keytype + e.LE)
-	s.WriteString(e.L1 + "SSH Key Fingerprint        " + e.L2 + fingerprint + e.LE)
+	s.WriteString(e.L1 + "SSH Key Type               " + e.L2 + sani(e, keytype) + e.LE)
+	s.WriteString(e.L1 + "SSH Key Fingerprint        " + e.L2 + sani(e, fingerprint) + e.LE)
 	s.WriteString(e.L1 + "SSH Key Ascii Art DBAA     " + e.L3 + dbaa + lineEnd(e))
 	return s.String()
 }

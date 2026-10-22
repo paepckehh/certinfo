@@ -17,18 +17,10 @@ import (
 // parseRawPrivateKey ...
 func parseRawPrivateKey(in *pem.Block) string {
 	switch in.Type {
-	case "RSA PRIVATE KEY":
-		return "RSA PRIVATE KEY"
-	case "PRIVATE KEY":
-		return "PRIVATE KEY"
-	case "EC PRIVATE KEY":
-		return "EC PRIVATE KEY"
-	case "DSA PRIVATE KEY":
-		return "DSA PRIVATE KEY"
-	case "OPENSSH PRIVATE KEY":
-		return "OPENSSH PRIVATE KEY"
+	case "RSA PRIVATE KEY", "PRIVATE KEY", "EC PRIVATE KEY", "DSA PRIVATE KEY", "OPENSSH PRIVATE KEY":
+		return in.Type
 	}
-	return errString(errors.New("unsupported keytype"))
+	return errString(errors.New("unsupported keytype"), nil)
 }
 
 // getKey ...
@@ -59,7 +51,7 @@ func getKey(k any) string {
 	case *mldsa.PrivateKey:
 		return k.PublicKey().Parameters().String() + " Private Key"
 	}
-	return errString(errors.New("unsupported keytype"))
+	return errString(errors.New("unsupported keytype"), nil)
 }
 
 // curveName ...
