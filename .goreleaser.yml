@@ -3,6 +3,8 @@ builds:
     id: "certinfo"
     binary: certinfo
     main: ./cmd/certinfo/main.go
+    ldflags:
+      - -s -w -X main.version={{.Version}}
     env:
       - CGO_ENABLED=0
     goos:

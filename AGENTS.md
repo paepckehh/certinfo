@@ -8,6 +8,7 @@
 
 ```bash
 make check            # gofmt -w -s + go vet + go fix + go test ./... (repo root and cmd/certinfo)
+make build            # CGO_ENABLED=0 build with the git tag injected as the version
 make all              # runs: go run cmd/certinfo/main.go cmd/certinfo/example.txt
 make deps             # regenerates go.mod (module paepcke.de/certinfo)
 
@@ -22,8 +23,9 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.71). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
-- Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`).
+- SemVer tags are `v0.1.N` (current: v0.1.75). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- Keep the fallback `version` var (cmd/certinfo/main.go) equal to the tag. `make build` injects `git describe --tags --dirty` via ldflags and goreleaser injects `{{.Version}}`, so release binaries and source builds agree. The CLI prints `certinfo vX.Y.Z` as the first line of human-readable reports.
+- Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`). `make deps` currently resolves certificate-transparency-go v1.4.0, which pulls in `k8s.io/klog/v2` as an indirect dependency.
 - `go.mod` requires **Go 1.27.2** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
 
 ## Architecture
@@ -45,11 +47,11 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - `certPubKey` (x509.go): the stdlib certificate parse path leaves `cert.PublicKey == nil` for SPKI types unknown to its `PublicKeyAlgorithm` enum (eg. X25519 KEM certs, RFC 8410), so the cert summary falls back to `x509.ParsePKIXPublicKey(cert.RawSubjectPublicKeyInfo)` before giving up as `[UNKNOWN]`.
 - `sigAlgo` (x509.go): modern signature algorithms (SHA2-RSA/ECDSA, Ed25519, ML-DSA-44/65/87) render as `[VALID]`, broken legacy hashes as `[FAIL]`.
 - Tests that generate ML-DSA material must skip (`t.Skipf`) when `mldsa.GenerateKey` returns errUnavailable (FIPS builds), so the suite stays green on all toolchains.
-- Minimal-dependency philosophy is a stated goal ("100% pure go, minimal imports"). Don't add new deps casually; the dep list is deliberately tiny (x/crypto, certificate-transparency-go, reportstyle).
+- Minimal-dependency philosophy is a stated goal ("100% pure go, minimal imports"). Don't add new deps casually; the direct dep list is deliberately tiny (x/crypto, certificate-transparency-go, reportstyle). `make deps` may add transitive indirect modules (eg. klog via certificate-transparency-go); that is expected.
 - Repeated literal strings are hoisted into unexported const blocks prefixed with `_` (e.g. `_linefeed`, `_expired` in generic.go:18). Follow this when adding repeated literals.
 - Output line labels are space-padded to a fixed column (e.g. `"X509 Cert Subject           "`) to keep summary tables aligned; keep padding consistent when editing labels.
 - Public API functions are documented with the `// FuncName\n// In : ...\n// Out: ...` comment style (see api.go).
-- Output is meant to be grep-parseable (`NO_COLOR` mode); errors print as `[certinfo] <msg>`, not via `log` (only the CLI uses `log.Fatal`). The library never writes to stdout itself.
+- The CLI prints `certinfo vX.Y.Z` at startup for human-readable reports (default ANSI and `NO_COLOR` text). `PEMONLY`, `PINONLY` and `HTML` stay banner-free so machine output and embedded reports remain clean (`isHumanReport`).
 - Report lines are truncated by `short` (generic.go) at `_shortLen` (80) bytes on a UTF-8 rune boundary; keep that property so `HTML`/`Markdown` output stays valid.
 - Free form values (certificate subject/issuer/SANs/URLs/OCSP, SSH options/comment/rest, error text) go through `sani(e, ...)` (generic.go) which applies `Style.SaniFunc` (eg. `html.EscapeString`). Never write certificate or SSH field data into a line without it, otherwise `HTML` reports can be injected. Generated/constant strings and style tokens are not escaped.
 - Error lines use `errString(err, style)` (generic.go), never string concatenation with `err.Error()`: parser errors can echo attacker-controlled input (eg. an unknown PEM type or a malformed SAN) and must be escaped for `HTML`. `CertRequest` renders its summary directly and only sanitizes the error text, so style tokens (`e.Valid`/`e.Fail`) are never passed through `SaniFunc`.
@@ -64,7 +66,8 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - Don't "fix" the DSA warnings, deprecated crypto usage, or the commented-out linters - they are intentional for parsing legacy certs.
 - The README is a modern GitHub-style repo README (centered hero + badges, feature list, env-var mode table, library example, roadmap). Keep its install/release links pointing at paepckehh/certinfo, never the tlsinfo repo.
 - The README hero is theme-aware: a `<picture>` with `prefers-color-scheme` picks `docs/hero-dark.svg` or `docs/hero-light.svg`, falling back to the light variant. Both are hand-built, self-contained SVG dashboards (no external assets, system font stacks only). Edit them as a pair so the variants stay in sync.
-- The Showtime screenshots (`docs/screenshot-truststore.svg`, `docs/screenshot-ssh.svg`) are static terminal renders of real `NO_COLOR=true` output (public roots from the system store, a generated ed25519 key). When the report format changes, re-run the tool and refresh the SVG text so the docs do not drift.
+- The Showtime screenshots (`docs/screenshot-truststore.svg`, `docs/screenshot-ssh.svg`) are rendered from **real ANSI output** (not hand-colored) by [docs/render_ansi_svg.py](docs/render_ansi_svg.py), including the startup version banner. Regenerate after report or version changes:
+  `certinfo input > /tmp/out.ansi && python3 docs/render_ansi_svg.py /tmp/out.ansi docs/screenshot-truststore.svg "certinfo vX.Y.Z - title" "command"`.
 - Input dispatch is per sanitized segment (`multipartDecodeParallel`, generic.go): a PEM block goes to `decodePemBlock`, everything else to the authorized-key decoder. Do not reintroduce a global first-32-char sniff - that silently dropped the rest of mixed inputs. Keep the sanitizer's 32-byte minimum so tiny junk reports `too short` instead of a parser error.
 - Certificate validity is rendered by `duration` (x509.go): minutes below one hour, hours up to 72h, days above (rounded, not truncated), so short-lived certs never read "0 hours".
 - `isSelfSigned` (x509.go) reports a self-issued CA even when its signature does not verify: it returns `ok=true` with an `e.Fail` line. The caller must print the line whenever `ok` is true, otherwise a broken root silently loses its `SelfSigned` row.

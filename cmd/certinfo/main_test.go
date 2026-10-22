@@ -62,6 +62,29 @@ func TestOut(t *testing.T) {
 	}
 }
 
+func TestVersionLine(t *testing.T) {
+	if got, want := versionLine(), _version+version; got != want {
+		t.Fatalf("versionLine() = %q, want %q", got, want)
+	}
+}
+
+func TestIsHumanReport(t *testing.T) {
+	t.Setenv(_pemonly, "")
+	t.Setenv(_pinonly, "")
+	t.Setenv(_html, "")
+	if !isHumanReport() {
+		t.Fatal("default output must be a human readable report")
+	}
+	for _, env := range []string{_pemonly, _pinonly, _html} {
+		t.Run(env, func(t *testing.T) {
+			t.Setenv(env, "true")
+			if isHumanReport() {
+				t.Fatalf("%s output must not print the banner", env)
+			}
+		})
+	}
+}
+
 func TestIsEnv(t *testing.T) {
 	const key = "CERTINFO_TEST_ENV"
 	t.Setenv(key, "1")

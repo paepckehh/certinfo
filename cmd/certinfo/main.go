@@ -19,7 +19,12 @@ const (
 	_pemonly  = "PEMONLY"
 	_pinonly  = "PINONLY"
 	_linefeed = "\n"
+	_version  = "certinfo v"
 )
+
+// version is the build version, overridden by goreleaser and `make build`
+// with the git tag. Keep the fallback in sync with the release tag.
+var version = "0.1.75"
 
 func main() {
 	style := reportstyle.StyleAnsi()
@@ -44,6 +49,9 @@ func main() {
 	if isEnv(_pinonly) {
 		report.PINOnly = true
 	}
+	if isHumanReport() {
+		out(versionLine())
+	}
 	switch {
 	case isPipe(os.Stdin):
 		out(certinfo.Decode(getPipe(), report))
@@ -59,6 +67,15 @@ func main() {
 //
 // LITTLE GENERIC HELPER SECTION
 //
+
+// versionLine is the startup banner of human readable reports
+func versionLine() string { return _version + version }
+
+// isHumanReport reports whether stdout is a human readable report and not a
+// machine only format (pem, keypin or html for a browser)
+func isHumanReport() bool {
+	return !isEnv(_pemonly) && !isEnv(_pinonly) && !isEnv(_html)
+}
 
 // out ...
 func out(msg string) {

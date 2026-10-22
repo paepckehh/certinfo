@@ -1,7 +1,11 @@
 PROJECT=$(shell basename $(CURDIR))
+VERSION=$(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//')
 
 all:
 	make -C cmd/$(PROJECT) all
+
+build:
+	CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o $(PROJECT) ./cmd/$(PROJECT)
 
 deps: 
 	rm go.mod go.sum

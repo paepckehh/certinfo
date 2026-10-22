@@ -84,6 +84,7 @@ cat /etc/ssl/* | certinfo
 ```
 
 ```text
+certinfo v0.1.75
 X509 Cert Subject           : [CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 X509 Cert Status            : [VALID] [for the next 4554 days]
 X509 Cert Signature Algo    : [VALID] [SHA256-RSA]
@@ -99,19 +100,21 @@ X509 Issuer Signature State : [VALID] [trusted via system trust store]
 
 One cert file? Same command. Multiple files? Just list them. Pipe preferred.
 
+Every human-readable run starts with its build version and, in a terminal, ANSI colors. Machine-only modes (`PEMONLY`, `PINONLY`, `HTML`) stay banner-free so their output remains clean.
+
 ### 📸 Real world, real output
 
 <p align="center">
   <img src="docs/screenshot-truststore.svg" alt="certinfo decoding the system trust store: valid roots, keypins and trust state" width="100%">
 </p>
 
-<p align="center"><sub><b>Whole system trust store in one pipe</b> - every root decoded, pinned and trust-checked.</sub></p>
+<p align="center"><sub><b>Whole system trust store in one pipe</b> - every root decoded, pinned and trust-checked, in true ANSI color.</sub></p>
 
 <p align="center">
   <img src="docs/screenshot-ssh.svg" alt="certinfo decoding an SSH ed25519 public key with fingerprint and ascii art" width="100%">
 </p>
 
-<p align="center"><sub><b>SSH keys too</b> - type, fingerprint and the classic randomart, straight from an authorized_keys line.</sub></p>
+<p align="center"><sub><b>SSH keys too</b> - type, fingerprint and the classic randomart, in true ANSI color.</sub></p>
 
 ## 🎛 Modes (env vars, not flags)
 
@@ -174,7 +177,7 @@ Highlights of the public API ([godoc](https://pkg.go.dev/paepcke.de/certinfo)):
 - API reference: [pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
 - Project home: [paepcke.de/certinfo](https://paepcke.de/certinfo/)
 - Hero artwork: [dark](docs/hero-dark.svg) / [light](docs/hero-light.svg) - hand-built, dependency-free SVG dashboard (theme-aware `<picture>`)
-- Screenshots: [trust store](docs/screenshot-truststore.svg) / [SSH key](docs/screenshot-ssh.svg) - terminal renderings of actual tool output
+- Screenshots: [trust store](docs/screenshot-truststore.svg) / [SSH key](docs/screenshot-ssh.svg) - rendered from real ANSI output with [docs/render_ansi_svg.py](docs/render_ansi_svg.py)
 - Releases: [github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
 
 ## 🤝 Contributing
