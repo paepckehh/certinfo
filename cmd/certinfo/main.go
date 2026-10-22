@@ -24,7 +24,7 @@ const (
 
 // version is the build version, overridden by goreleaser and `make build`
 // with the git tag. Keep the fallback in sync with the release tag.
-var version = "0.1.75"
+var version = "0.1.76"
 
 func main() {
 	style := reportstyle.StyleAnsi()

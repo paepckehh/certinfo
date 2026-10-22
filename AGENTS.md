@@ -23,7 +23,7 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.75). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- SemVer tags are `v0.1.N` (current: v0.1.76). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
 - Keep the fallback `version` var (cmd/certinfo/main.go) equal to the tag. `make build` injects `git describe --tags --dirty` via ldflags and goreleaser injects `{{.Version}}`, so release binaries and source builds agree. The CLI prints `certinfo vX.Y.Z` as the first line of human-readable reports.
 - Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`). `make deps` currently resolves certificate-transparency-go v1.4.0, which pulls in `k8s.io/klog/v2` as an indirect dependency.
 - `go.mod` requires **Go 1.27.2** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
@@ -65,7 +65,7 @@ The CLI (cmd/certinfo/main.go) has **no flags** - behavior is controlled purely 
 - `go vet`/`gofmt -s`/`go test ./...` are the gates; the code style is deliberately compact (one-liner helpers at the bottom of each file).
 - Don't "fix" the DSA warnings, deprecated crypto usage, or the commented-out linters - they are intentional for parsing legacy certs.
 - The README is a modern GitHub-style repo README (centered hero + badges, feature list, env-var mode table, library example, roadmap). Keep its install/release links pointing at paepckehh/certinfo, never the tlsinfo repo.
-- The README hero is theme-aware: a `<picture>` with `prefers-color-scheme` picks `docs/hero-dark.svg` or `docs/hero-light.svg`, falling back to the light variant. Both are hand-built, self-contained SVG dashboards (no external assets, system font stacks only). Edit them as a pair so the variants stay in sync.
+- The README hero is theme-aware: a `<picture>` with `prefers-color-scheme` picks `docs/hero-dark.svg` or `docs/hero-light.svg`, falling back to the light variant. Both are hand-built, self-contained SVG dashboards (no external assets, system font stacks only). Edit them as a pair so the variants stay in sync. The `docs/established-{dark,light}.svg` pair uses the same pattern for the "established 2022, 3+ years on GitHub" banner; keep its release count and year range a true snapshot when editing.
 - The Showtime screenshots (`docs/screenshot-truststore.svg`, `docs/screenshot-ssh.svg`) are rendered from **real ANSI output** (not hand-colored) by [docs/render_ansi_svg.py](docs/render_ansi_svg.py), including the startup version banner. Regenerate after report or version changes:
   `certinfo input > /tmp/out.ansi && python3 docs/render_ansi_svg.py /tmp/out.ansi docs/screenshot-truststore.svg "certinfo vX.Y.Z - title" "command"`.
 - Input dispatch is per sanitized segment (`multipartDecodeParallel`, generic.go): a PEM block goes to `decodePemBlock`, everything else to the authorized-key decoder. Do not reintroduce a global first-32-char sniff - that silently dropped the rest of mixed inputs. Keep the sanitizer's 32-byte minimum so tiny junk reports `too short` instead of a parser error.

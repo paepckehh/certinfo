@@ -23,6 +23,12 @@ stores, or a plain pipe.
 
 `go run paepcke.de/certinfo/cmd/certinfo@latest`
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/established-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/established-light.svg">
+  <img src="docs/established-light.svg" alt="certinfo: established in 2022, 3+ years of continuous development on GitHub, 68+ tagged releases" width="100%">
+</picture>
+
 </div>
 
 ---
@@ -84,7 +90,7 @@ cat /etc/ssl/* | certinfo
 ```
 
 ```text
-certinfo v0.1.75
+certinfo v0.1.76
 X509 Cert Subject           : [CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 X509 Cert Status            : [VALID] [for the next 4554 days]
 X509 Cert Signature Algo    : [VALID] [SHA256-RSA]
@@ -177,6 +183,7 @@ Highlights of the public API ([godoc](https://pkg.go.dev/paepcke.de/certinfo)):
 - API reference: [pkg.go.dev/paepcke.de/certinfo](https://pkg.go.dev/paepcke.de/certinfo)
 - Project home: [paepcke.de/certinfo](https://paepcke.de/certinfo/)
 - Hero artwork: [dark](docs/hero-dark.svg) / [light](docs/hero-light.svg) - hand-built, dependency-free SVG dashboard (theme-aware `<picture>`)
+- Established banner: [dark](docs/established-dark.svg) / [light](docs/established-light.svg) - 2022 to today, 68+ tagged releases (theme-aware `<picture>`)
 - Screenshots: [trust store](docs/screenshot-truststore.svg) / [SSH key](docs/screenshot-ssh.svg) - rendered from real ANSI output with [docs/render_ansi_svg.py](docs/render_ansi_svg.py)
 - Releases: [github.com/paepckehh/certinfo/releases](https://github.com/paepckehh/certinfo/releases)
 
