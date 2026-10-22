@@ -90,7 +90,7 @@ cat /etc/ssl/* | certinfo
 ```
 
 ```text
-certinfo v0.1.76
+certinfo v0.1.77
 X509 Cert Subject           : [CN=ISRG Root X1,O=Internet Security Research Group,C=US]
 X509 Cert Status            : [VALID] [for the next 4554 days]
 X509 Cert Signature Algo    : [VALID] [SHA256-RSA]

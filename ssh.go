@@ -14,6 +14,8 @@ import (
 	"strconv"
 )
 
+const _dbaaSymbols = " .o+=*BOX@%&#/^"
+
 // parseRawPrivateKey ...
 func parseRawPrivateKey(in *pem.Block) string {
 	switch in.Type {
@@ -127,8 +129,10 @@ func getDBAA(in string) (out string) {
 				c = 'S'
 			case co == 2000:
 				c = 'E'
-			case co < 15:
-				c = " .o+=*BOX@%&#/^"[co]
+			case co < len(_dbaaSymbols):
+				c = _dbaaSymbols[co]
+			default:
+				c = _dbaaSymbols[len(_dbaaSymbols)-1]
 			}
 			l = append(l, c)
 		}

@@ -1292,6 +1292,23 @@ func TestCurveName(t *testing.T) {
 	}
 }
 
+func TestGetDBAAOverflowClamps(t *testing.T) {
+	digest := make([]byte, 32)
+	for i := range digest {
+		digest[i] = byte(i)
+	}
+	out := getDBAA(string(digest))
+	lines := strings.Split(strings.TrimSuffix(out, _linefeed), _linefeed)
+	for i := 1; i < 10; i++ {
+		if n := strings.Count(lines[i], "|"); n != 2 {
+			t.Fatalf("getDBAA() row %d has %d borders, want 2 (overflow must clamp to %q): %q", i, n, _dbaaSymbols[len(_dbaaSymbols)-1], lines[i])
+		}
+	}
+	if !strings.Contains(out, string(_dbaaSymbols[len(_dbaaSymbols)-1])) {
+		t.Fatalf("getDBAA() did not render the overflow symbol: %q", out)
+	}
+}
+
 func TestGetDBAA(t *testing.T) {
 	const digest = "0123456789abcdef0123456789abcdef"
 	out := getDBAA(digest)
