@@ -23,10 +23,10 @@ cat file.pem | go run ./cmd/certinfo             # pipe input works too
 
 ## Release process (author convention)
 
-- SemVer tags are `v0.1.N` (current: v0.1.77). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
+- SemVer tags are `v0.1.N` (current: v0.1.78). **Bump the patch only, N+1**, push tag; `.github/workflows/release.yml` runs goreleaser on tags.
 - Keep the fallback `version` var (cmd/certinfo/main.go) equal to the tag. `make build` injects `git describe --tags --dirty` via ldflags and goreleaser injects `{{.Version}}`, so release binaries and source builds agree. When `git describe` is empty (source archive), `make build` omits the ldflags and the source fallback is used, never an empty version. The CLI prints `certinfo vX.Y.Z` as the first line of human-readable reports.
 - Dependency bumps come via Dependabot (PRs titled `build(deps): bump ...`). `make deps` currently resolves certificate-transparency-go v1.4.0, which pulls in `k8s.io/klog/v2` as an indirect dependency.
-- `go.mod` requires **Go 1.27.2** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
+- `go.mod` requires **Go 1.27.3** (code uses modern idioms like `sync.WaitGroup.Go`); keep the CI matrix Go version (`.github/workflows/golang.yml`) in sync with it.
 
 ## Architecture
 
